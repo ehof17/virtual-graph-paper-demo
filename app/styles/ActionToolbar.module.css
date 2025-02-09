@@ -1,0 +1,26 @@
+.toolbar {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .button {
+    padding: 0.5rem 1rem;
+    border: 1px solid #ccc;
+    background-color: #f9f9f9;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .button:hover {
+    background-color: #eaeaea;
+  }
+  
+  .selected {
+    padding: 0.5rem 1rem;
+    border: 1px solid #007bff;
+    background-color: #cce5ff;
+    cursor: pointer;
+  }
