@@ -19,7 +19,7 @@ const availableActions: ActionType[] = [
 ];
 
 const ActionToolbar: React.FC<ActionToolbarProps> = ({ selectedAction, onSelect }) => {
-  const { actions, points } = useGraphPaper();
+  const { points } = useGraphPaper();
  
   const pointCount = points.length;
 

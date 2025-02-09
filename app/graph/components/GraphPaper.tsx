@@ -7,8 +7,9 @@ import ActionToolbar from './ActionToolbar';
 import { createPointID } from '@/lib/utils';
 
 const GraphPaper: React.FC = () => {
-  const { actions, addAction, points, addPoint } = useGraphPaper();
+  const { actions, addAction, addPoint } = useGraphPaper();
   const [selectedAction, setSelectedAction] = useState<ActionType | null>(null);
+  // this will be replaced with the actual graph paper
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const handleSelectAction = (action: ActionType) => {

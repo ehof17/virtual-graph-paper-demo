@@ -1,6 +1,6 @@
 // https://stackoverflow.com/questions/6860853/generate-random-string-for-div-id
 export function createPointID(){
-    var S4 = function() {
+    const S4 = () => {
         return (((1+Math.random())*0x10000)|0).toString(16).substring(1);
      };
      return (S4()+S4()+"-"+S4()+"-"+S4()+"-"+S4()+"-"+S4()+S4()+S4());
