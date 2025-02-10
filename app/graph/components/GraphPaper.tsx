@@ -5,10 +5,13 @@ import styles from '../../styles/GraphPaper.module.css';
 import { useGraphPaper } from '../../../contexts/GraphPaperContext';
 import ActionToolbar from './ActionToolbar';
 import { createPointID } from '@/lib/utils';
+import TypesSelectorWrapper from './TypesSelectorWrapper';
+
 
 const GraphPaper: React.FC = () => {
-  const { actions, addAction, addPoint } = useGraphPaper();
+  const { actions, addAction, addPoint, selectedPointStyle } = useGraphPaper();
   const [selectedAction, setSelectedAction] = useState<ActionType | null>(null);
+
   // this will be replaced with the actual graph paper
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -26,7 +29,7 @@ const GraphPaper: React.FC = () => {
         newAction = {
           actionType: "plot_point",
           coordinates: [{ x, y }],
-          style: { pointStyle: "filled", color: "#FF0000" },
+          style: { pointStyle: selectedPointStyle, color: "#FF0000" },
           timestamp: new Date().toISOString(),
         };
         // add the point and id to a list of points
@@ -37,6 +40,8 @@ const GraphPaper: React.FC = () => {
         drawPoint(x, y);
         break;
 
+
+     
 
       // Todo: implement the rest of the actions
       default:
@@ -51,15 +56,31 @@ const GraphPaper: React.FC = () => {
   };
 
   // Draw a point on the canvas at (x, y)
+
   const drawPoint = (x: number, y: number) => {
     const canvas = canvasRef.current;
     if (canvas) {
       const ctx = canvas.getContext('2d');
       if (ctx) {
-        ctx.fillStyle = "#FF0000";
         ctx.beginPath();
         ctx.arc(x, y, 5, 0, Math.PI * 2);
-        ctx.fill();
+
+        switch(selectedPointStyle){
+          case 'filled':
+            ctx.fillStyle = "#FF0000"; 
+            ctx.fill();
+          break;
+
+          case 'unfilled':
+            ctx.strokeStyle = "#FF0000"; 
+            ctx.lineWidth = 2;
+            ctx.stroke();
+          break;
+
+          default:
+          break;
+        }
+      
       }
     }
   };
@@ -68,7 +89,9 @@ const GraphPaper: React.FC = () => {
     <div className={styles.graphPaperContainer}>
       <h1>Virtual Graph Paper</h1>
       <ActionToolbar selectedAction={selectedAction} onSelect={handleSelectAction} />
-  
+      <TypesSelectorWrapper selectedAction={selectedAction} />
+
+      
 
       {/* todo: make the actual graph paper component */}
       <canvas

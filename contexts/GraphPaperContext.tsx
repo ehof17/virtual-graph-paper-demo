@@ -1,10 +1,17 @@
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { GraphPaperAction, GraphPaperPoint } from '../lib/types/graphPaper';
+import { GraphPaperAction, GraphPaperPoint, PointStyle, ConnectPointsType, LineStyle } from '../lib/types/graphPaper';
 
 
 interface GraphPaperContextProps {
+  selectedPointStyle: PointStyle;
+  setSelectedPointStyle: (style: PointStyle) => void;
+  selectedConnectPointsType: ConnectPointsType;
+  setSelectedConnectPointsType: (type: ConnectPointsType) => void;
+  selectedLineStyle: LineStyle;
+  setSelectedLineStyle: (style: LineStyle) => void;
+
   actions: GraphPaperAction[];
   points: GraphPaperPoint[];
   addAction: (action: GraphPaperAction) => void;
@@ -22,6 +29,10 @@ interface GraphPaperProviderProps {
 export const GraphPaperProvider: React.FC<GraphPaperProviderProps> = ({ children }) => {
   const [actions, setActions] = useState<GraphPaperAction[]>([]);
   const [points, setPoints] = useState<GraphPaperPoint[]>([]);
+  const [selectedPointStyle, setSelectedPointStyle] = useState<PointStyle>("filled");
+  const [selectedConnectPointsType, setSelectedConnectPointsType] = useState<ConnectPointsType>("line_segment");
+  const [selectedLineStyle, setSelectedLineStyle] = useState<LineStyle>("solid");
+
 
   const addAction = (action: GraphPaperAction) => {
     setActions(prev => [...prev, action]);
@@ -51,6 +62,13 @@ export const GraphPaperProvider: React.FC<GraphPaperProviderProps> = ({ children
     addPoint,
     removeAction,
     clearActions,
+    selectedPointStyle,
+    setSelectedPointStyle,
+    selectedConnectPointsType,
+    setSelectedConnectPointsType,
+    selectedLineStyle,
+    setSelectedLineStyle,
+    
   };
 
   return (

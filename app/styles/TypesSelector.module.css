@@ -1,0 +1,22 @@
+.selected, .unselected{
+    transition: background-color 0.3s ease;
+}
+
+.selected{
+    background-color: #cce5ff;
+}
+.unselected{
+    background-color: #fefefe;
+}
+.unselected:hover{
+    background-color: #eaeaea;
+}
+.selected:hover{
+    background-color: #86bcf6;
+}
+.selector{
+    display: flex;
+}
+.outer{
+    
+}

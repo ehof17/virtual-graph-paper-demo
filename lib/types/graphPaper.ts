@@ -7,7 +7,12 @@ export type ActionType =
   | "draw_parabola"
   | "shade_region"
 
+
+
+export type PointStyle = "filled" | "unfilled";
+
 export type ConnectPointsType = "line_segment" | "ray" | "line_from_points";
+export type LineStyle = "solid" | "dashed" | "dotted" | "broken";
 
 
 export interface Coordinate {
