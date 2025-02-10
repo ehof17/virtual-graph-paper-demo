@@ -12,6 +12,10 @@ interface GraphPaperContextProps {
   selectedLineStyle: LineStyle;
   setSelectedLineStyle: (style: LineStyle) => void;
 
+  selectedPoints: GraphPaperPoint[];
+  addSelectedPoint: (point: GraphPaperPoint) => void;
+  removeSelectedPoint: (point: GraphPaperPoint) => void;
+
   actions: GraphPaperAction[];
   points: GraphPaperPoint[];
   addAction: (action: GraphPaperAction) => void;
@@ -29,6 +33,7 @@ interface GraphPaperProviderProps {
 export const GraphPaperProvider: React.FC<GraphPaperProviderProps> = ({ children }) => {
   const [actions, setActions] = useState<GraphPaperAction[]>([]);
   const [points, setPoints] = useState<GraphPaperPoint[]>([]);
+  const [selectedPoints, setSelectedPoints] = useState<GraphPaperPoint[]>([]);
   const [selectedPointStyle, setSelectedPointStyle] = useState<PointStyle>("filled");
   const [selectedConnectPointsType, setSelectedConnectPointsType] = useState<ConnectPointsType>("line_segment");
   const [selectedLineStyle, setSelectedLineStyle] = useState<LineStyle>("solid");
@@ -41,6 +46,12 @@ export const GraphPaperProvider: React.FC<GraphPaperProviderProps> = ({ children
   const addPoint = (point: GraphPaperPoint) => {
     setPoints(prev => [...prev, point]);
   };
+  const addSelectedPoint = (point: GraphPaperPoint) =>{
+    setSelectedPoints(prev => [...prev, point])
+  }
+  const removeSelectedPoint = (point: GraphPaperPoint) =>{
+    setSelectedPoints(prev => prev.filter(p =>p.id !== point.id))
+  }
 
   const removeAction = (action: GraphPaperAction) => {
     setActions(prev => prev.filter(a => a.timestamp !== action.timestamp));
@@ -60,6 +71,9 @@ export const GraphPaperProvider: React.FC<GraphPaperProviderProps> = ({ children
     points,
     addAction,
     addPoint,
+    selectedPoints,
+    addSelectedPoint,
+    removeSelectedPoint,
     removeAction,
     clearActions,
     selectedPointStyle,

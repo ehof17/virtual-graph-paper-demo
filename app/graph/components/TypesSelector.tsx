@@ -12,7 +12,7 @@ interface TypesSelectorProps {
 const availableOptions = {
   pointStyle: ["filled", "unfilled"] as PointStyle[],
   connectPointsType: ["line_segment", "ray", "line_from_points"] as ConnectPointsType[],
-  lineStyle: ["solid", "dashed", "dotted", "broken"] as LineStyle[],
+  lineStyle: ["solid", "dashed", "dotted"] as LineStyle[],
 };
 
 const TypesSelector: React.FC<TypesSelectorProps> = ({ type }) => {

@@ -12,7 +12,7 @@ export type ActionType =
 export type PointStyle = "filled" | "unfilled";
 
 export type ConnectPointsType = "line_segment" | "ray" | "line_from_points";
-export type LineStyle = "solid" | "dashed" | "dotted" | "broken";
+export type LineStyle = "solid" | "dashed" | "dotted";
 
 
 export interface Coordinate {
@@ -23,11 +23,12 @@ export interface Coordinate {
 // This interface represents a plotted point with an ID so that it can be referenced by the connect action
 export interface GraphPaperPoint extends Coordinate {
   id: string;
+  pointStyle: PointStyle;
 }
 
 export interface ActionStyle {
-  pointStyle?: "filled" | "unfilled";
-  lineStyle?: "solid" | "dashed" | "dotted" | "broken";
+  pointStyle?: PointStyle
+  lineStyle?: LineStyle
   color?: string;
   thickness?: number;
   opacity?: number;
@@ -38,10 +39,10 @@ export interface GraphPaperAction {
   coordinates?: Coordinate[];
   // For actions like connect_points, we want references to already-plotted points
   points?: GraphPaperPoint[];
-
   style?: ActionStyle;
-  timestamp: string;
   connectionType?: ConnectPointsType;
+  timestamp: string;
+ 
 }
 
 export interface GraphPaperSession {

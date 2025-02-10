@@ -19,9 +19,9 @@ const availableActions: ActionType[] = [
 ];
 
 const ActionToolbar: React.FC<ActionToolbarProps> = ({ selectedAction, onSelect }) => {
-  const { points } = useGraphPaper();
+  const { selectedPoints  } = useGraphPaper();
  
-  const pointCount = points.length;
+  const pointCount = selectedPoints.length;
 
   return (
     <div className={styles.toolbar}>
@@ -37,8 +37,20 @@ const ActionToolbar: React.FC<ActionToolbarProps> = ({ selectedAction, onSelect 
         // either have them select the points to connect before enabling the button
         // or after they hit 'Complete action' they can select the points
 
-        // also need to get the connect points type somehow (line, segment, ray)
-        if (action == "connect_points" && pointCount < 2) {
+
+        if (action == "connect_points" && pointCount != 2) {
+          disabled = true;
+        }
+      
+        if (action == "draw_line"){
+          disabled = true;
+        }
+
+        if (action == "draw_parabola"){
+          disabled = true;
+        }
+        
+        if (action == "shade_region"){
           disabled = true;
         }
   

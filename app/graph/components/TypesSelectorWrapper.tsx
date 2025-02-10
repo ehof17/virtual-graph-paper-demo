@@ -10,8 +10,8 @@ const TypesSelectorWrapper: React.FC<TypesSelectorOuterProps> = ({ selectedActio
   if (!selectedAction) return null; // If no action is selected, don't show anything
 
   return (
-    <div className="flex flex-col space-y-2 p-4">
-      <h3 className="text-lg font-bold text-gray-700">Customize Action</h3>
+    <div>
+      <h3>Customize Action</h3>
 
       {selectedAction === "plot_point" && <TypesSelector type="point_style" />}
       {selectedAction === "connect_points" && <>
