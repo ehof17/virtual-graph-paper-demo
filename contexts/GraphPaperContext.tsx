@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { GraphPaperAction, GraphPaperPoint, PointStyle, ConnectPointsType, LineStyle } from '../lib/types/graphPaper';
+import { GraphPaperAction, GraphPaperPoint, PointStyle, ConnectPointsType, LineStyle, TwoPointFunctionType } from '../lib/types/graphPaper';
 
 
 interface GraphPaperContextProps {
@@ -11,6 +11,9 @@ interface GraphPaperContextProps {
   setSelectedConnectPointsType: (type: ConnectPointsType) => void;
   selectedLineStyle: LineStyle;
   setSelectedLineStyle: (style: LineStyle) => void;
+  selectedTwoPointFunction: TwoPointFunctionType;
+  setSelectedTwoPointFunction: (func: TwoPointFunctionType) => void;
+
 
   selectedPoints: GraphPaperPoint[];
   addSelectedPoint: (point: GraphPaperPoint) => void;
@@ -35,8 +38,10 @@ export const GraphPaperProvider: React.FC<GraphPaperProviderProps> = ({ children
   const [points, setPoints] = useState<GraphPaperPoint[]>([]);
   const [selectedPoints, setSelectedPoints] = useState<GraphPaperPoint[]>([]);
   const [selectedPointStyle, setSelectedPointStyle] = useState<PointStyle>("filled");
-  const [selectedConnectPointsType, setSelectedConnectPointsType] = useState<ConnectPointsType>("line_segment");
+  const [selectedConnectPointsType, setSelectedConnectPointsType] = useState<ConnectPointsType>("finite");
   const [selectedLineStyle, setSelectedLineStyle] = useState<LineStyle>("solid");
+  const [selectedTwoPointFunction, setSelectedTwoPointFunction] = useState<TwoPointFunctionType>("linear");
+  
 
 
   const addAction = (action: GraphPaperAction) => {
@@ -82,6 +87,8 @@ export const GraphPaperProvider: React.FC<GraphPaperProviderProps> = ({ children
     setSelectedConnectPointsType,
     selectedLineStyle,
     setSelectedLineStyle,
+    selectedTwoPointFunction,
+    setSelectedTwoPointFunction,
     
   };
 

@@ -16,7 +16,9 @@ const TypesSelectorWrapper: React.FC<TypesSelectorOuterProps> = ({ selectedActio
       {selectedAction === "plot_point" && <TypesSelector type="point_style" />}
       {selectedAction === "connect_points" && <>
         <TypesSelector type="connection_type" />
+        <TypesSelector type="two_function_style" />
         <TypesSelector type='line_style'/>
+        
       </>}
       {selectedAction === "draw_line" && <TypesSelector type="line_style" />}
       {selectedAction === "draw_parabola" && <TypesSelector type="line_style" />}

@@ -1,3 +1,5 @@
+import { Coordinate } from "./types/graphPaper";
+
 // https://stackoverflow.com/questions/6860853/generate-random-string-for-div-id
 export function createPointID(){
     const S4 = () => {
@@ -16,4 +18,16 @@ export function formatAction(action: string) {
         .split("_")
         .map(word => capitalizeFirstLetter(word)) 
         .join(" "); 
+}
+
+
+export function canvasToGrid(CANVAS_SIZE: number, STEP_SIZE: number, inputX: number, inputY: number):Coordinate {
+    const x = (inputX - (CANVAS_SIZE / 2)) / STEP_SIZE
+    const y = ((CANVAS_SIZE / 2) - inputY) / STEP_SIZE
+    return {x, y}
+}
+export function gridToCanvas(CANVAS_SIZE: number, STEP_SIZE: number, inputX: number, inputY: number):Coordinate {
+    const x = (inputX * STEP_SIZE) + (CANVAS_SIZE / 2)
+    const y = (CANVAS_SIZE / 2) - (inputY * STEP_SIZE)
+    return {x,y}
 }

@@ -1,18 +1,19 @@
 // TypesSelector.tsx
 import React from 'react';
 import { useGraphPaper } from '../../../contexts/GraphPaperContext';
-import { PointStyle, ConnectPointsType, LineStyle} from '../../../lib/types/graphPaper'
+import { PointStyle, ConnectPointsType, LineStyle, TwoPointFunctionType} from '../../../lib/types/graphPaper'
 import styles from '../../styles/TypesSelector.module.css';
 import { formatAction } from '@/lib/utils';
 interface TypesSelectorProps {
-  type: "point_style" | "connection_type" | "line_style";
+  type: "point_style" | "connection_type" | "line_style" | "two_function_style";
 }
 
 
 const availableOptions = {
   pointStyle: ["filled", "unfilled"] as PointStyle[],
-  connectPointsType: ["line_segment", "ray", "line_from_points"] as ConnectPointsType[],
+  connectPointsType: ["continuous", "semi_infinite", "finite"] as ConnectPointsType[],
   lineStyle: ["solid", "dashed", "dotted"] as LineStyle[],
+  twoPointFunction: ["linear", "exponential"] as TwoPointFunctionType[],
 };
 
 const TypesSelector: React.FC<TypesSelectorProps> = ({ type }) => {
@@ -23,6 +24,8 @@ const TypesSelector: React.FC<TypesSelectorProps> = ({ type }) => {
     setSelectedConnectPointsType,
     selectedLineStyle,
     setSelectedLineStyle,
+    selectedTwoPointFunction,
+    setSelectedTwoPointFunction
   } = useGraphPaper();
 
 
@@ -33,9 +36,13 @@ const TypesSelector: React.FC<TypesSelectorProps> = ({ type }) => {
   } else if (type === "connection_type") {
     selected = selectedConnectPointsType;
     options = availableOptions.connectPointsType;
-  } else {
+  } else if (type === "line_style") {
     selected = selectedLineStyle;
     options = availableOptions.lineStyle;
+  }
+  else {
+    selected = selectedTwoPointFunction;
+    options = availableOptions.twoPointFunction;
   }
 
   return (
@@ -50,8 +57,11 @@ const TypesSelector: React.FC<TypesSelectorProps> = ({ type }) => {
               setSelectedPointStyle(option as PointStyle);
             } else if (type === "connection_type") {
               setSelectedConnectPointsType(option as ConnectPointsType);
-            } else {
+            } else if (type === "line_style") {
               setSelectedLineStyle(option as LineStyle);
+            }
+            else if (type === "two_function_style") {
+              setSelectedTwoPointFunction(option as TwoPointFunctionType);
             }
           }}
           className={selected === option ? styles.selected : styles.unselected}
