@@ -218,12 +218,13 @@ const GraphPaper: React.FC = () => {
     if (!canvas) return;
 
     
-    // Compute the center
+    /*
     const centerX = canvas.width / 2; 
     const centerY = canvas.height / 2; 
 
     const x = centerX + xNum * STEP_SIZE;  
     const y = centerY - yNum * STEP_SIZE;  
+    */
 
     const pointID = createPointID();
     // backend needs inputted x and y
@@ -387,8 +388,8 @@ const GraphPaper: React.FC = () => {
         const steps = 500; 
         const stepSize = (endX - startX) / steps;
       
-        let currentX = startX;
-        let currentY = a * (b ** currentX);
+        const currentX = startX;
+        const currentY = a * (b ** currentX);
       
         // Convert that to canvas coords
         const startCanvas = gridToCanvas(CANVAS_SIZE, STEP_SIZE, currentX, currentY);
