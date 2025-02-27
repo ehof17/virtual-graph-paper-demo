@@ -3,9 +3,9 @@
 export type ActionType =
   | "plot_point"
   | "select_points"
-  | "connect_points"
-  | "draw_line"
-  | "draw_parabola"
+  | "connect_2_points"
+  | "connect_3_points"
+  | "connect_4_points"
   | "shade_region"
 
 
@@ -31,6 +31,7 @@ export interface Coordinate {
 export interface GraphPaperPoint extends Coordinate {
   id: string;
   pointStyle: PointStyle;
+  color?: string;
 }
 
 export interface ActionStyle {

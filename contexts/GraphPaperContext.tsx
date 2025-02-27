@@ -19,6 +19,9 @@ interface GraphPaperContextProps {
   addSelectedPoint: (point: GraphPaperPoint) => void;
   removeSelectedPoint: (point: GraphPaperPoint) => void;
 
+  selectedColor: string;
+  setSelectedColor: (color: string) => void;
+
   actions: GraphPaperAction[];
   points: GraphPaperPoint[];
   addAction: (action: GraphPaperAction) => void;
@@ -41,6 +44,13 @@ export const GraphPaperProvider: React.FC<GraphPaperProviderProps> = ({ children
   const [selectedConnectPointsType, setSelectedConnectPointsType] = useState<ConnectPointsType>("finite");
   const [selectedLineStyle, setSelectedLineStyle] = useState<LineStyle>("solid");
   const [selectedTwoPointFunction, setSelectedTwoPointFunction] = useState<TwoPointFunctionType>("linear");
+  const COLOR_OPTIONS = [
+    { label: 'Red', value: '#FF0000' },
+    { label: 'Blue', value: '#0000FF' },
+    { label: 'Green', value: '#008000' },
+    { label: 'Black', value: '#000000' },
+  ];
+  const [selectedColor, setSelectedColor] = useState<string>(COLOR_OPTIONS[0].value);  
   
 
 
@@ -89,6 +99,8 @@ export const GraphPaperProvider: React.FC<GraphPaperProviderProps> = ({ children
     setSelectedLineStyle,
     selectedTwoPointFunction,
     setSelectedTwoPointFunction,
+    selectedColor,
+    setSelectedColor,
     
   };
 

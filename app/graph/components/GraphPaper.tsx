@@ -7,6 +7,7 @@ import ActionToolbar from './ActionToolbar';
 import { canvasToGrid, createPointID, gridToCanvas } from '@/lib/utils';
 import TypesSelectorWrapper from './TypesSelectorWrapper';
 import PlotPointInput from './PlotPointInput';
+import ColorSelector from './ColorSelector';
 
 
 const GraphPaper: React.FC = () => {
@@ -132,12 +133,12 @@ const GraphPaper: React.FC = () => {
         }
 
           break;
-      case "connect_points":
+      case "connect_2_points":
         const selectedPoint1 = selectedPoints[0]
         const selectedPoint2 = selectedPoints[1]
         // only draw the connection if it wasn't drawn before
         newAction = {
-          actionType: "connect_points",
+          actionType: "connect_2_points",
           points: [selectedPoint1, selectedPoint2 ],
           style: { lineStyle: selectedLineStyle },
           connectionType: selectedConnectPointsType,
@@ -146,7 +147,7 @@ const GraphPaper: React.FC = () => {
         };
 
         const existingConnectionIndex = actions.findIndex(action => 
-          action.actionType === "connect_points" &&
+          action.actionType === "connect_2_points" &&
           Array.isArray(action.points) &&
           action.points.length === 2 &&
           action.points.some(p => p.id === selectedPoint1.id) &&
@@ -494,7 +495,7 @@ const GraphPaper: React.FC = () => {
       let connectionType = action.connectionType;
       let lineStyle = action.style?.lineStyle;
 
-      if (action.actionType === "connect_points") {
+      if (action.actionType === "connect_2_points") {
         if (action.points?.length === 2) {
           const actionPoint = action.points[0]
           const actionPoint2 = action.points[1]
@@ -536,13 +537,15 @@ const GraphPaper: React.FC = () => {
 
       {/* todo: make the actual graph paper component */}
       {selectedAction === "plot_point" && (
+        <>
         <PlotPointInput
           xValue={xInput}
           yValue={yInput}
           onXChange={setXInput}
           onYChange={setYInput}
-          onPlotPointClick={handlePlotPointFromInput}
-        />
+          onPlotPointClick={handlePlotPointFromInput} />
+          <ColorSelector />
+        </>
       )}
       <canvas
         ref={canvasRef}

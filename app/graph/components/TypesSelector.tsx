@@ -5,7 +5,7 @@ import { PointStyle, ConnectPointsType, LineStyle, TwoPointFunctionType} from '.
 import styles from '../../styles/TypesSelector.module.css';
 import { formatAction } from '@/lib/utils';
 interface TypesSelectorProps {
-  type: "point_style" | "connection_type" | "line_style" | "two_function_style";
+  type: "point_style" | "connection_type" | "line_style" | "two_function_style" | "three_function_style" | "four_function_style";
 }
 
 

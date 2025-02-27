@@ -1,0 +1,16 @@
+.colorSelectorContainer {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  
+  .colorDropdown {
+    padding: 0.25rem;
+    font-size: 1rem;
+  }
+  
+  .selectedColorPreview {
+    width: 2rem;
+    height: 2rem;
+    border: 1px solid #000;
+  }

@@ -13,9 +13,9 @@ interface ActionToolbarProps {
 const availableActions: ActionType[] = [
   "plot_point",
   "select_points",
-  "connect_points",
-  "draw_line",
-  "draw_parabola",
+  "connect_2_points",
+  "connect_3_points",
+  "connect_4_points",
   "shade_region",
 
 ];
@@ -41,18 +41,18 @@ const ActionToolbar: React.FC<ActionToolbarProps> = ({ selectedAction, onSelect 
         // or after they hit 'Complete action' they can select the points
 
 
-        if (action == "connect_points" && plottedPointCount != 2) {
+        if (action == "connect_2_points" && plottedPointCount != 2) {
           disabled = true;
         }
         if (action == "select_points" && pointCount == 0) {
           disabled = true;
         }
       
-        if (action == "draw_line"){
+        if (action == "connect_3_points"){
           disabled = true;
         }
 
-        if (action == "draw_parabola"){
+        if (action == "connect_4_points"){
           disabled = true;
         }
         
