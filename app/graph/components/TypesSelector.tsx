@@ -81,6 +81,9 @@ const TypesSelector: React.FC<TypesSelectorProps> = ({ type }) => {
             else if (type === "three_function_style") {
               setSelectedThreePointFunction(option as ThreePointFunctionType);
             }
+            else {
+              setSelectedFourPointFunction(option as FourPointFunctionType);
+            }
           }}
           className={selected === option ? styles.selected : styles.unselected}
         >
