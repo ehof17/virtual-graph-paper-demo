@@ -1,5 +1,5 @@
 import { CANVAS_SIZE, RANGE, STEP_SIZE } from "./constants";
-import { ConnectPointsType, GraphPaperPoint, LineStyle, TwoPointFunctionType } from "./types/graphPaper";
+import { ConnectPointsType, GraphPaperPoint, LineStyle, TwoPointFunctionType, ThreePointFunctionType } from "./types/graphPaper";
 import { gridToCanvas } from "./utils";
 
  // old function needs the actual canvas coordinates
@@ -246,7 +246,101 @@ export const drawTwoPointConnection = (ctx: CanvasRenderingContext2D, point1: Gr
     ctx.stroke();
   };
 
+  export const drawThreePointConnection = (ctx: CanvasRenderingContext2D, point1: GraphPaperPoint, point2: GraphPaperPoint, point3: GraphPaperPoint, connectionType: ConnectPointsType, lineStyle: LineStyle, selectedThreePointFunction: ThreePointFunctionType, selectedColor: string) => {
+    if (!ctx) return;
+  
+    const p1 = gridToCanvas(CANVAS_SIZE, STEP_SIZE, point1.x, point1.y);
+    const p2 = gridToCanvas(CANVAS_SIZE, STEP_SIZE, point2.x, point2.y);
+    const p3 = gridToCanvas(CANVAS_SIZE, STEP_SIZE, point3.x, point3.y);
+  
+    ctx.beginPath();
+    ctx.setLineDash([]);
+    ctx.strokeStyle = selectedColor;
+    ctx.lineWidth = 2;
+  
+    if (selectedThreePointFunction === "quadratic" || "square_root") {
+      drawExponential(ctx, point1, point2, point3);
+    } else if (selectedThreePointFunction === "absolute_value") {
+      drawAbsolute(ctx, point1, point2, point3);
+    }
+    //cubic","quadratic","square_root","absolute_value
+  
+    ctx.stroke();
+  };
+  
+  // Exponential function fitting y = a * b^x
+  const drawExponential = (
+    ctx: CanvasRenderingContext2D,
+    p1: GraphPaperPoint,
+    p2: GraphPaperPoint,
+    p3: GraphPaperPoint
+  ) => {
+    const x1 = p1.x, y1 = p1.y;
+    const x2 = p2.x, y2 = p2.y;
+    const x3 = p3.x, y3 = p3.y;
+  
+    // Ensure y-values are nonzero and same sign
+    if (y1 * y2 <= 0 || y1 * y3 <= 0) {
+      alert("Exponential function requires all y-values to have the same sign.");
+      return;
+    }
+  
+    // Solve for `b` using logarithms
+    const b = Math.exp(
+      (Math.log(y3 / y1) - Math.log(y2 / y1) * (x3 - x1) / (x2 - x1)) /
+        ((x3 - x1) - (x2 - x1))
+    );
+    const a = y1 / Math.pow(b, x1);
+  
+    const steps = 500;
+    const startX = Math.min(x1, x2, x3) - 2;
+    const endX = Math.max(x1, x2, x3) + 2;
+    const stepSize = (endX - startX) / steps;
+  
+    const startCanvas = gridToCanvas(CANVAS_SIZE, STEP_SIZE, startX, a * Math.abs(startX - x2) + y2);
+ctx.moveTo(startCanvas.x, startCanvas.y);
 
+  
+    for (let i = 1; i <= steps; i++) {
+      const x = startX + i * stepSize;
+      const y = a * Math.pow(b, x);
+      const canvasPoint = gridToCanvas(CANVAS_SIZE, STEP_SIZE, x, y);
+      ctx.lineTo(canvasPoint.x, canvasPoint.y);
+    }
+  };
+  
+  // Absolute value function fitting y = a |x - h| + k
+  const drawAbsolute = (
+    ctx: CanvasRenderingContext2D,
+    p1: GraphPaperPoint,
+    p2: GraphPaperPoint,
+    p3: GraphPaperPoint
+  ) => {
+    // Find the vertex (h, k)
+    const [sortedP1, sortedP2, sortedP3] = [p1, p2, p3].sort((a, b) => a.x - b.x);
+    const h = sortedP2.x;
+    const k = sortedP2.y;
+  
+    // Solve for `a` using one of the other points
+    const a = (sortedP1.y - k) / Math.abs(sortedP1.x - h);
+  
+    const steps = 500;
+    const startX = sortedP1.x - 2;
+    const endX = sortedP3.x + 2;
+    const stepSize = (endX - startX) / steps;
+  
+    const startCanvas = gridToCanvas(CANVAS_SIZE, STEP_SIZE, startX, a * Math.abs(startX - h) + k);
+ctx.moveTo(startCanvas.x, startCanvas.y);
+
+  
+for (let i = 1; i <= steps; i++) {
+  const x = startX + i * stepSize;
+  const y = a * Math.abs(x - h) + k;
+  const canvasPoint = gridToCanvas(CANVAS_SIZE, STEP_SIZE, x, y);
+  ctx.lineTo(canvasPoint.x, canvasPoint.y);
+}
+  };
+  
   export const drawGrid = (canvas:HTMLCanvasElement) => {
 
     const ctx = canvas.getContext("2d");

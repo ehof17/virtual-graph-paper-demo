@@ -48,11 +48,11 @@ const ActionToolbar: React.FC<ActionToolbarProps> = ({ selectedAction, onSelect 
           disabled = true;
         }
       
-        if (action == "connect_3_points"){
+        if (action == "connect_3_points" && plottedPointCount != 3){
           disabled = true;
         }
 
-        if (action == "connect_4_points"){
+        if (action == "connect_4_points" && plottedPointCount != 4){
           disabled = true;
         }
         

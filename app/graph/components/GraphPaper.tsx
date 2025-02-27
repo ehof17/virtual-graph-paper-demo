@@ -8,12 +8,12 @@ import { canvasToGrid, createPointID } from '@/lib/utils';
 import TypesSelectorWrapper from './TypesSelectorWrapper';
 import PlotPointInput from './PlotPointInput';
 import ColorSelector from './ColorSelector';
-import { drawGrid, drawPoint, drawSelectedPoint, drawTwoPointConnection } from '@/lib/canvasUtils';
+import { drawGrid, drawPoint, drawSelectedPoint, drawThreePointConnection, drawTwoPointConnection } from '@/lib/canvasUtils';
 import { CANVAS_SIZE, RANGE, STEP_SIZE } from '@/lib/constants';
 
 
 const GraphPaper: React.FC = () => {
-  const { actions, addAction, removeAction, addPoint, selectedPointStyle, points, addSelectedPoint, removeSelectedPoint, selectedPoints, selectedConnectPointsType, selectedLineStyle, selectedTwoPointFunction, selectedColor} = useGraphPaper();
+  const { actions, addAction, removeAction, addPoint, selectedPointStyle, points, addSelectedPoint, removeSelectedPoint, selectedPoints, selectedConnectPointsType, selectedLineStyle, selectedTwoPointFunction, selectedThreePointFunction, selectedColor} = useGraphPaper();
   const [selectedAction, setSelectedAction] = useState<ActionType | null>(null);
   const [xInput, setXInput] = useState<string>("");
   const [yInput, setYInput] = useState<string>("");
@@ -147,19 +147,65 @@ const GraphPaper: React.FC = () => {
         }
         break
 
-
-      // Todo: implement the rest of the actions
-
-      default:
-        // If a rule is broken
-        newAction = null;
-        break;
-    }
-    if (newAction) {
-      addAction(newAction);
-      
-    }
-  };
+        case "connect_3_points":
+          if (selectedPoints.length === 3) {
+            const [point1, point2, point3] = selectedPoints;
+    
+            newAction = {
+              actionType: "connect_3_points",
+              points: [point1, point2, point3],
+              style: { lineStyle: selectedLineStyle },
+              functionType: selectedThreePointFunction, // Assuming you have this state
+              timestamp: new Date().toISOString(),
+            };
+    
+            const existingConnectionIndex = actions.findIndex(action =>
+              action.actionType === "connect_3_points" &&
+              Array.isArray(action.points) &&
+              action.points.length === 3 &&
+              action.points.some(p => p.id === point1.id) &&
+              action.points.some(p => p.id === point2.id) &&
+              action.points.some(p => p.id === point3.id)
+            );
+    
+            if (existingConnectionIndex !== -1) {
+              const existingConnection = actions[existingConnectionIndex];
+              const stylesChanged = (
+                existingConnection.style?.lineStyle !== selectedLineStyle ||
+                existingConnection.functionType !== selectedThreePointFunction
+              );
+    
+              if (!stylesChanged) {
+                alert("This connection already exists with the same style!");
+                return;
+              } else {
+                alert("The styles have changed");
+                removeAction(existingConnection);
+                clearConnection(existingConnection);
+              }
+            } else {
+              const canvas = canvasRef.current;
+              if (!canvas) return;
+    
+              const ctx = canvas.getContext('2d');
+              if (!ctx) return;
+    
+              drawThreePointConnection(ctx, point1, point2, point3, selectedConnectPointsType, selectedLineStyle, selectedThreePointFunction, selectedColor);
+            }
+          } else {
+            alert("Please select exactly 3 points to connect.");
+          }
+          break;
+    
+        default:
+          newAction = null;
+          break;
+      }
+    
+      if (newAction) {
+        addAction(newAction);
+      }
+    };
 
   // The inputted numbers need to match the actual coordinates
   // But displaying it on the grid will need different numbers
@@ -286,6 +332,44 @@ const GraphPaper: React.FC = () => {
               connectionType,
               lineStyle,
               selectedTwoPointFunction,
+              selectedColor
+            );
+          }
+        }
+      }
+      if (action.actionType === "connect_3_points") {
+        if (action.points?.length === 3) {
+          const actionPoint = action.points[0]
+          const actionPoint2 = action.points[1]
+
+          // If the action is a connect points action and it matches the points attached to the passed in 
+          // action to update
+          // Draw it with the new updated style, not the existing style
+          if (
+            Array.isArray(connectionToUpdate.points) &&
+            connectionToUpdate.points.length === 2 &&
+            connectionToUpdate.points.some(p => p.id === actionPoint.id) &&
+            connectionToUpdate.points.some(p => p.id === actionPoint2.id)
+          ) {
+            connectionType = selectedConnectPointsType
+            lineStyle = selectedLineStyle
+          }
+
+    
+          if (connectionType && lineStyle) {
+            const canvas = canvasRef.current;
+            if (!canvas) return;
+            const ctx = canvas.getContext("2d");
+            if (!ctx) return;
+
+            drawThreePointConnection(
+              ctx, 
+              action.points[0],
+              action.points[1],
+              action.points[2],
+              connectionType,
+              lineStyle,
+              selectedThreePointFunction,
               selectedColor
             );
           }
