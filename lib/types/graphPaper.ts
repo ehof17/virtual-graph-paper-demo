@@ -49,7 +49,7 @@ export interface GraphPaperAction {
   points?: GraphPaperPoint[];
   style?: ActionStyle;
   connectionType?: ConnectPointsType;
-  functionType?: TwoPointFunctionType;
+  functionType?: TwoPointFunctionType | ThreePointFunctionType;
   timestamp: string;
  
 }

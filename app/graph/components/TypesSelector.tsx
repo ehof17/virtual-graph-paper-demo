@@ -1,7 +1,7 @@
 // TypesSelector.tsx
 import React from 'react';
 import { useGraphPaper } from '../../../contexts/GraphPaperContext';
-import { PointStyle, ConnectPointsType, LineStyle, TwoPointFunctionType} from '../../../lib/types/graphPaper'
+import { PointStyle, ConnectPointsType, LineStyle, TwoPointFunctionType, ThreePointFunctionType} from '../../../lib/types/graphPaper'
 import styles from '../../styles/TypesSelector.module.css';
 import { formatAction } from '@/lib/utils';
 interface TypesSelectorProps {
@@ -14,6 +14,7 @@ const availableOptions = {
   connectPointsType: ["continuous", "semi_infinite", "finite"] as ConnectPointsType[],
   lineStyle: ["solid", "dashed", "dotted"] as LineStyle[],
   twoPointFunction: ["linear", "exponential"] as TwoPointFunctionType[],
+  threePointFunction: ["cubic", "quadratic", "square_root", "absolute_value"] as ThreePointFunctionType[],
 };
 
 const TypesSelector: React.FC<TypesSelectorProps> = ({ type }) => {
@@ -25,7 +26,9 @@ const TypesSelector: React.FC<TypesSelectorProps> = ({ type }) => {
     selectedLineStyle,
     setSelectedLineStyle,
     selectedTwoPointFunction,
-    setSelectedTwoPointFunction
+    setSelectedTwoPointFunction,
+    selectedThreePointFunction,
+    setSelectedThreePointFunction,
   } = useGraphPaper();
 
 
@@ -62,6 +65,9 @@ const TypesSelector: React.FC<TypesSelectorProps> = ({ type }) => {
             }
             else if (type === "two_function_style") {
               setSelectedTwoPointFunction(option as TwoPointFunctionType);
+            }
+            else if (type === "three_function_style") {
+              setSelectedThreePointFunction(option as ThreePointFunctionType);
             }
           }}
           className={selected === option ? styles.selected : styles.unselected}

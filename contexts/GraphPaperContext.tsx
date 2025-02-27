@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { GraphPaperAction, GraphPaperPoint, PointStyle, ConnectPointsType, LineStyle, TwoPointFunctionType } from '../lib/types/graphPaper';
+import { GraphPaperAction, GraphPaperPoint, PointStyle, ConnectPointsType, LineStyle, TwoPointFunctionType, ThreePointFunctionType } from '../lib/types/graphPaper';
 import { COLOR_OPTIONS } from '../lib/constants';
 
 interface GraphPaperContextProps {
@@ -13,8 +13,8 @@ interface GraphPaperContextProps {
   setSelectedLineStyle: (style: LineStyle) => void;
   selectedTwoPointFunction: TwoPointFunctionType;
   setSelectedTwoPointFunction: (func: TwoPointFunctionType) => void;
-
-
+  selectedThreePointFunction: ThreePointFunctionType;
+  setSelectedThreePointFunction: (func: ThreePointFunctionType) => void;
   selectedPoints: GraphPaperPoint[];
   addSelectedPoint: (point: GraphPaperPoint) => void;
   removeSelectedPoint: (point: GraphPaperPoint) => void;
@@ -44,7 +44,7 @@ export const GraphPaperProvider: React.FC<GraphPaperProviderProps> = ({ children
   const [selectedConnectPointsType, setSelectedConnectPointsType] = useState<ConnectPointsType>("finite");
   const [selectedLineStyle, setSelectedLineStyle] = useState<LineStyle>("solid");
   const [selectedTwoPointFunction, setSelectedTwoPointFunction] = useState<TwoPointFunctionType>("linear");
-
+  const [selectedThreePointFunction, setSelectedThreePointFunction] = useState<ThreePointFunctionType>("quadratic");
   const [selectedColor, setSelectedColor] = useState<string>(COLOR_OPTIONS[0].value);  
 
 
@@ -101,6 +101,8 @@ export const GraphPaperProvider: React.FC<GraphPaperProviderProps> = ({ children
     setSelectedLineStyle,
     selectedTwoPointFunction,
     setSelectedTwoPointFunction,
+    selectedThreePointFunction,
+    setSelectedThreePointFunction,
     selectedColor,
     setSelectedColor,
     
