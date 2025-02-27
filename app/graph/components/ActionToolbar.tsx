@@ -57,7 +57,7 @@ const ActionToolbar: React.FC<ActionToolbarProps> = ({ selectedAction, onSelect 
         }
         
         if (action == "shade_region"){
-          disabled = true;
+          disabled = false;
         }
   
     

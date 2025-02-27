@@ -73,7 +73,7 @@ const handleSelectPointsCanvasClick = (x: number, y: number) => {
   }
 }
 
-const handleConnectTwoPointsClick = (x: number, y: number): GraphPaperAction | null => {
+const handleConnectTwoPointsClick = (): GraphPaperAction | null => {
   const selectedPoint1 = selectedPoints[0]
   const selectedPoint2 = selectedPoints[1]
   // only draw the connection if it wasn't drawn before
@@ -131,7 +131,7 @@ const handleConnectTwoPointsClick = (x: number, y: number): GraphPaperAction | n
 return newAction as GraphPaperAction;
 }
 
-const handleConnectThreePointsClick = (x: number, y: number): GraphPaperAction | null => {
+const handleConnectThreePointsClick = (): GraphPaperAction | null => {
   if (selectedPoints.length === 3) {
     const [point1, point2, point3] = selectedPoints;
 
@@ -198,11 +198,11 @@ const handleConnectThreePointsClick = (x: number, y: number): GraphPaperAction |
         break;
 
       case "connect_2_points":
-        newAction = handleConnectTwoPointsClick(x, y);
+        newAction = handleConnectTwoPointsClick();
         break
 
       case "connect_3_points":
-        newAction = handleConnectThreePointsClick(x, y);
+        newAction = handleConnectThreePointsClick();
         break;
     
       default:

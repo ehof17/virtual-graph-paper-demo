@@ -24,6 +24,8 @@ export type TwoPointFunctionType= "linear" | "exponential";
 export type ThreePointFunctionType = "quadratic" |  "absolute_value";
 export type FourPointFunctionType = "cubic"
 
+export type ShadeType = "above" | "below";
+
 export interface Coordinate {
   x: number;
   y: number;

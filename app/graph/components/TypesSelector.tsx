@@ -1,11 +1,11 @@
 // TypesSelector.tsx
 import React from 'react';
 import { useGraphPaper } from '../../../contexts/GraphPaperContext';
-import { PointStyle, ConnectPointsType, LineStyle, TwoPointFunctionType, ThreePointFunctionType, FourPointFunctionType} from '../../../lib/types/graphPaper'
+import { PointStyle, ConnectPointsType, LineStyle, TwoPointFunctionType, ThreePointFunctionType, FourPointFunctionType, ShadeType} from '../../../lib/types/graphPaper'
 import styles from '../../styles/TypesSelector.module.css';
 import { formatAction } from '@/lib/utils';
 interface TypesSelectorProps {
-  type: "point_style" | "connection_type" | "line_style" | "two_function_style" | "three_function_style" | "four_function_style";
+  type: "point_style" | "connection_type" | "line_style" | "two_function_style" | "three_function_style" | "four_function_style" | "shade_style";
 }
 
 
@@ -17,6 +17,8 @@ const availableOptions = {
   twoPointFunction: ["linear", "exponential"] as TwoPointFunctionType[],
   threePointFunction: ["quadratic",  "absolute_value"] as ThreePointFunctionType[],
   fourPointFunction: ["cubic"] as FourPointFunctionType[],
+
+  shadeStyle: ["above", "below"] as ShadeType[],
 };
 
 const TypesSelector: React.FC<TypesSelectorProps> = ({ type }) => {
@@ -33,6 +35,8 @@ const TypesSelector: React.FC<TypesSelectorProps> = ({ type }) => {
     setSelectedThreePointFunction,
     selectedFourPointFunction,
     setSelectedFourPointFunction,
+    selectedShadeType,
+    setSelectedShadeType
   } = useGraphPaper();
 
 
@@ -55,9 +59,13 @@ const TypesSelector: React.FC<TypesSelectorProps> = ({ type }) => {
     selected = selectedThreePointFunction;
     options = availableOptions.threePointFunction;
   }
-  else {
+  else if (type == "four_function_style") {
     selected = selectedFourPointFunction;
     options = availableOptions.fourPointFunction;
+  }
+  else {
+    selected = selectedShadeType;
+    options = availableOptions.shadeStyle;
   }
 
   return (
@@ -81,8 +89,11 @@ const TypesSelector: React.FC<TypesSelectorProps> = ({ type }) => {
             else if (type === "three_function_style") {
               setSelectedThreePointFunction(option as ThreePointFunctionType);
             }
-            else {
+            else if (type == "four_function_style") {
               setSelectedFourPointFunction(option as FourPointFunctionType);
+            }
+            else if (type == "shade_style") {
+               setSelectedShadeType(option as ShadeType);
             }
           }}
           className={selected === option ? styles.selected : styles.unselected}
