@@ -249,9 +249,9 @@ export const drawTwoPointConnection = (ctx: CanvasRenderingContext2D, point1: Gr
   export const drawThreePointConnection = (ctx: CanvasRenderingContext2D, point1: GraphPaperPoint, point2: GraphPaperPoint, point3: GraphPaperPoint, connectionType: ConnectPointsType, lineStyle: LineStyle, selectedThreePointFunction: ThreePointFunctionType, selectedColor: string) => {
     if (!ctx) return;
   
-    const p1 = gridToCanvas(CANVAS_SIZE, STEP_SIZE, point1.x, point1.y);
-    const p2 = gridToCanvas(CANVAS_SIZE, STEP_SIZE, point2.x, point2.y);
-    const p3 = gridToCanvas(CANVAS_SIZE, STEP_SIZE, point3.x, point3.y);
+   // const p1 = gridToCanvas(CANVAS_SIZE, STEP_SIZE, point1.x, point1.y);
+    //const p2 = gridToCanvas(CANVAS_SIZE, STEP_SIZE, point2.x, point2.y);
+    //const p3 = gridToCanvas(CANVAS_SIZE, STEP_SIZE, point3.x, point3.y);
   
     ctx.beginPath();
     ctx.setLineDash([]);
