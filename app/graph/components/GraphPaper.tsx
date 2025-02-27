@@ -4,7 +4,7 @@ import { GraphPaperAction, ActionType, GraphPaperPoint,ConnectPointsType, LineSt
 import styles from '../../styles/GraphPaper.module.css';
 import { useGraphPaper } from '../../../contexts/GraphPaperContext';
 import ActionToolbar from './ActionToolbar';
-import { canvasToGrid, createPointID, gridToCanvas, hexToRgba } from '@/lib/utils';
+import { canvasToGrid, createPointID, gridToCanvas } from '@/lib/utils';
 import TypesSelectorWrapper from './TypesSelectorWrapper';
 import PlotPointInput from './PlotPointInput';
 import ColorSelector from './ColorSelector';
