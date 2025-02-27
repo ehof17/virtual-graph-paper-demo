@@ -1,13 +1,15 @@
 'use client';
 import React, { useState, useRef, useEffect} from 'react';
-import { GraphPaperAction, ActionType, GraphPaperPoint,ConnectPointsType, LineStyle} from '../../../lib/types/graphPaper';
+import { GraphPaperAction, ActionType} from '../../../lib/types/graphPaper';
 import styles from '../../styles/GraphPaper.module.css';
 import { useGraphPaper } from '../../../contexts/GraphPaperContext';
 import ActionToolbar from './ActionToolbar';
-import { canvasToGrid, createPointID, gridToCanvas } from '@/lib/utils';
+import { canvasToGrid, createPointID } from '@/lib/utils';
 import TypesSelectorWrapper from './TypesSelectorWrapper';
 import PlotPointInput from './PlotPointInput';
 import ColorSelector from './ColorSelector';
+import { drawGrid, drawPoint, drawSelectedPoint, drawTwoPointConnection } from '@/lib/canvasUtils';
+import { CANVAS_SIZE, RANGE, STEP_SIZE } from '@/lib/constants';
 
 
 const GraphPaper: React.FC = () => {
@@ -23,71 +25,14 @@ const GraphPaper: React.FC = () => {
     setSelectedAction(action);
   };
 
-  // Eventually these will need to be dynamic
-  // for demo purposes we are just going 10x10 in each direction  
-  const RANGE = 10;
-  const CANVAS_SIZE = 400;
 
-  const STEP_SIZE = CANVAS_SIZE / (RANGE * 2)
 
 
   useEffect(() => {
-    drawGrid(); 
+    if (canvasRef.current) {
+      drawGrid(canvasRef.current);
+    }
   }, []);
-
-  const drawGrid = () => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-  
-    // Ensure the grid lines are not dashed/dotted
-    ctx.setLineDash([]); 
-    // Clear whatever was on the canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    const width = canvas.width;   
-    const height = canvas.height; 
-    const centerX = width / 2;    
-    const centerY = height / 2;   
-
-    for (let i = -RANGE; i <= RANGE; i++) {
-      ctx.beginPath();
-      const x = centerX + i * STEP_SIZE;
-
-      // If i = 0, draw the Y-axis thicker
-      if (i === 0) {
-        ctx.strokeStyle = "black";
-        ctx.lineWidth = 2;
-      } else {
-        ctx.strokeStyle = "#999";
-        ctx.lineWidth = 1;
-      }
-
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, height);
-      ctx.stroke();
-    }
-
-    for (let j = -RANGE; j <= RANGE; j++) {
-      ctx.beginPath();
-      const y = centerY + j * STEP_SIZE;
-
-      // If j = 0, draw the X-axis thicker
-      if (j === 0) {
-        ctx.strokeStyle = "black";
-        ctx.lineWidth = 2;
-      } else {
-        ctx.strokeStyle = "#999";
-        ctx.lineWidth = 1;
-      }
-
-      ctx.moveTo(0, y);
-      ctx.lineTo(width, y);
-      ctx.stroke();
-    }
-  };
 
 
 
@@ -114,10 +59,17 @@ const GraphPaper: React.FC = () => {
             (point) => point.id === existingPoint.id
           );
 
+          const canvas = canvasRef.current;
+          if (!canvas) return;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) return;
+
           if (pointAlreadySelected){
             removeSelectedPoint(existingPoint)
             // redraw with unselected color
-            drawPointNew(existingPoint, existingPoint.color || "red");
+            
+
+            drawPoint(ctx, existingPoint);
 
             // if theres a connection between the two points
             // and removing this point breaks the connection
@@ -130,7 +82,7 @@ const GraphPaper: React.FC = () => {
             // add to selected list
             addSelectedPoint(existingPoint)
             // redraw with selected color
-            drawSelectedPointNew(existingPoint);
+            drawSelectedPoint(ctx, existingPoint);
 
           }
           break;
@@ -185,7 +137,13 @@ const GraphPaper: React.FC = () => {
     
         }
         else{
-          drawConnection(selectedPoint1, selectedPoint2, selectedConnectPointsType, selectedLineStyle)
+          
+          const canvas = canvasRef.current;
+          if (!canvas) return;
+        
+          const ctx = canvas.getContext('2d');
+          if (!ctx) return;
+          drawTwoPointConnection(ctx, selectedPoint1, selectedPoint2, selectedConnectPointsType, selectedLineStyle, selectedTwoPointFunction, selectedColor);
         }
         break
 
@@ -240,7 +198,11 @@ const GraphPaper: React.FC = () => {
 
     // add the point to the canvas (frontend)
     // it uses the normalized x and y 
-    drawPointNew(newPoint, selectedColor);
+    
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    drawPoint(ctx, newPoint);
 
     const newAction = {
       actionType: "plot_point" as ActionType,
@@ -253,265 +215,6 @@ const GraphPaper: React.FC = () => {
 
   };
 
-  // old function needs the actual canvas coordinates
-  // while this one will try and draw it based on the grid
-  const drawPointNew = (point: GraphPaperPoint, color:string) => {
-    console.log(point)
-    const canvas = canvasRef.current;
-    if (canvas) {
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        ctx.beginPath();
-        const updated = gridToCanvas(CANVAS_SIZE, STEP_SIZE, point.x, point.y)
-        ctx.arc(updated.x, updated.y, 5, 0, Math.PI * 2);
-        
-        switch(point.pointStyle){
-          case 'filled':
-            ctx.fillStyle = color; 
-            ctx.fill();
-          break;
-
-          case 'unfilled':
-            ctx.strokeStyle = color; 
-            ctx.lineWidth = 2;
-            ctx.stroke();
-          break;
-
-          default:
-          break;
-        }
-      
-      }
-    }
-  };
-
-  // Draws a selected point
-  // Really just draws two points, the bottom one is just black and a smaller one on top of it
-  // Might need to fix this later. If the color is black
-    // and it its filled then to show its selected it will be orange
-    // and if its unfilled it will be orange
-  const drawSelectedPointNew = (point: GraphPaperPoint) => {
-    let colorToUse = point.color || "red"
-    if (point.color === '#000000'){
-      colorToUse = 'orange'
-    }
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-  
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-  
-    const updated = gridToCanvas(CANVAS_SIZE, STEP_SIZE, point.x, point.y);
-  
-    const outerRadius = 5;
-    const innerRadius = 4; 
-
-    // if it is filled
-    switch(point.pointStyle){
-      case 'filled':
-        // 1) Draw the "outline" in black
-        ctx.beginPath();
-        ctx.arc(updated.x, updated.y, outerRadius, 0, 2 * Math.PI);
-        ctx.fillStyle = 'black';
-        ctx.fill();
-
-        // 2) Draw the normal circle in the point’s color on top
-        ctx.beginPath();
-        ctx.arc(updated.x, updated.y, innerRadius, 0, 2 * Math.PI);
-        ctx.fillStyle = colorToUse; 
-        ctx.fill();
-      break;
-
-      case 'unfilled':
-        ctx.beginPath();
-        ctx.arc(updated.x, updated.y, outerRadius, 0, 2 * Math.PI);
-        ctx.strokeStyle = "orange"; 
-        ctx.lineWidth = 2;
-        ctx.stroke();
-      break;
-
-      default:
-      break;
-    }
-
-  
-   
-    
-  };
-
-
-
-  const drawConnection = (point1: GraphPaperPoint, point2: GraphPaperPoint, connectionType: ConnectPointsType, lineStyle: LineStyle) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-  
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-  
-    ctx.beginPath();
-    const point1Norm = gridToCanvas(CANVAS_SIZE, STEP_SIZE, point1.x, point1.y)
-    const point2Norm = gridToCanvas(CANVAS_SIZE, STEP_SIZE, point2.x, point2.y)
-    ctx.moveTo(point1Norm.x, point1Norm.y);
-
-    // Set line styles
-    switch (lineStyle) {
-      case "dashed":
-        ctx.setLineDash([10, 5]); // Dash pattern
-        break;
-      case "dotted":
-        // todo: fix this
-        // this throws off the grid pattern
-        ctx.setLineDash([2, 4]); // Dotted pattern
-        break;
-      default:
-        ctx.setLineDash([]); 
-        break;
-    }
-
-    // handle linear vs exponential
-    switch (selectedTwoPointFunction) {
-
-      case "linear":
-        console.log("linear")
-        switch (connectionType) {
-          case "finite":
-            ctx.lineTo(point2Norm.x, point2Norm.y);
-            break;
-          case "semi_infinite":
-            extendRay(ctx, point1, point2);
-            break;
-          case "continuous":
-            extendLine(ctx, point1, point2);
-            break;
-          default:
-            break;
-        }
-      break;
-      // todo: make this work with the connection type
-      case "exponential":
-        const x1 = point1.x;
-        const y1 = point1.y;
-        const x2 = point2.x;
-        const y2 = point2.y;
-      
-        if (y1 === 0 || y2 === 0) {
-          alert("Exponential requires non-zero y-values.");
-          return; // stop drawing
-        }
-        // If signs differ (one positive, one negative) => fail
-        if ((y1 < 0 && y2 > 0) || (y1 > 0 && y2 < 0)) {
-          alert("Exponential requires both points' y-values to have the same sign.");
-          return; 
-        }
-        // Also ensure x1 !== x2 so we don't divide by zero
-        if (x1 === x2) {
-          alert("Exponential requires two distinct x-values.");
-          return;
-        }
-      
-
-
-
-        // 2. Solve for a and b
-        const b = (y2 / y1) ** (1 / (x2 - x1));
-        const a = y1 / (b ** x1);
-      
-        let startX = Math.min(x1, x2);
-        let endX   = Math.max(x1, x2);
-
-        if (connectionType === "semi_infinite") {
-          startX = Math.min(x1, x2);
-          endX = RANGE;
-        }
-        if (connectionType === "finite") {
-          // Draw only between the two points
-          startX = Math.min(x1, x2);
-          endX = Math.max(x1, x2);
-        }
-        if (connectionType === "continuous") {
-          // Draw between the two points
-          startX = -RANGE;
-          endX = RANGE;
-        }
-
-
-      
-        // How many steps? More steps => smoother curve
-        const steps = 500; 
-        const stepSize = (endX - startX) / steps;
-      
-        const currentX = startX;
-        const currentY = a * (b ** currentX);
-      
-        // Convert that to canvas coords
-        const startCanvas = gridToCanvas(CANVAS_SIZE, STEP_SIZE, currentX, currentY);
-        ctx.moveTo(startCanvas.x, startCanvas.y);
-      
-        for (let i = 1; i <= steps; i++) {
-          const nextX = startX + i * stepSize;
-          const nextY = a * (b ** nextX);
-      
-          const nextCanvas = gridToCanvas(CANVAS_SIZE, STEP_SIZE, nextX, nextY);
-          console.log(nextCanvas)
-      
-          ctx.lineTo(nextCanvas.x, nextCanvas.y);
-        }
-      
-        break;
-
-
-      default:
-        break;
-
-    }
-
-
-  
-    // todo: fix this so only connections between the selected points are blue
-    // when points become selected/deselected update the connection colors
-    ctx.strokeStyle = selectedColor; 
-
-    ctx.lineWidth = 2;
-    ctx.stroke();
-  };
-  
-  
-  
-
-
-  // Todo... add arrowheads for lines and rays
-  const extendRay = (ctx: CanvasRenderingContext2D, p1: GraphPaperPoint, p2: GraphPaperPoint) => {
-    const p1Norm = gridToCanvas(CANVAS_SIZE, STEP_SIZE, p1.x, p1.y)
-    const p2Norm = gridToCanvas(CANVAS_SIZE, STEP_SIZE, p2.x, p2.y)
-
-    const dx = p2Norm.x - p1Norm.x;
-    const dy = p2Norm.y - p1Norm.y;
-    const scale = 1000; 
-    const endX = p2Norm.x + dx * scale;
-    const endY = p2Norm.y + dy * scale;
-  
-    ctx.lineTo(endX, endY);
-    ctx.stroke();
-  };
-  
-  // Extend a full line both directions and add arrows on both ends
-  const extendLine = (ctx: CanvasRenderingContext2D, p1: GraphPaperPoint, p2: GraphPaperPoint) => {
-    const p1Norm = gridToCanvas(CANVAS_SIZE, STEP_SIZE, p1.x, p1.y)
-    const p2Norm = gridToCanvas(CANVAS_SIZE, STEP_SIZE, p2.x, p2.y)
-
-    const dx = p2Norm.x - p1Norm.x;
-    const dy = p2Norm.y - p1Norm.y;
-    const scale = 1000; 
-  
-    const startX = p1Norm.x - dx * scale;
-    const startY = p1Norm.y - dy * scale;
-    const endX = p2Norm.x + dx * scale;
-    const endY = p2Norm.y + dy * scale;
-  
-    ctx.moveTo(startX, startY);
-    ctx.lineTo(endX, endY);
-    ctx.stroke();
-  };
 
   const clearConnection = (connectionToUpdate: GraphPaperAction) => {
     const canvas = canvasRef.current;
@@ -530,14 +233,19 @@ const GraphPaper: React.FC = () => {
 // the connectionToUpdate will be drawn using the selected styles
   const redrawAllConnections = (connectionToUpdate: GraphPaperAction) =>{
 
-    drawGrid();
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    drawGrid(canvas);
 
     points.forEach(point =>{
-      drawPointNew(point, point.color || "red")
+      drawPoint(ctx, point)
     })
 
     selectedPoints.forEach(point => {
-      drawSelectedPointNew(point)
+      drawSelectedPoint(ctx, point)
     })
 
 
@@ -566,11 +274,19 @@ const GraphPaper: React.FC = () => {
 
     
           if (connectionType && lineStyle) {
-            drawConnection(
+            const canvas = canvasRef.current;
+            if (!canvas) return;
+            const ctx = canvas.getContext("2d");
+            if (!ctx) return;
+
+            drawTwoPointConnection(
+              ctx, 
               action.points[0],
               action.points[1],
               connectionType,
-              lineStyle
+              lineStyle,
+              selectedTwoPointFunction,
+              selectedColor
             );
           }
         }
@@ -584,8 +300,6 @@ const GraphPaper: React.FC = () => {
       <ActionToolbar selectedAction={selectedAction} onSelect={handleSelectAction} />
       <TypesSelectorWrapper selectedAction={selectedAction} />
 
-      
-
       {/* todo: make the actual graph paper component */}
       {selectedAction === "plot_point" && (
         <PlotPointInput
@@ -597,6 +311,7 @@ const GraphPaper: React.FC = () => {
        
       )}
       {(selectedAction === "select_points" || selectedAction == "plot_point") && <ColorSelector />}
+
       <canvas
         ref={canvasRef}
         className={styles.canvas}

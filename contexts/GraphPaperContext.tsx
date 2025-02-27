@@ -1,8 +1,8 @@
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { GraphPaperAction, GraphPaperPoint, PointStyle, ConnectPointsType, LineStyle, TwoPointFunctionType } from '../lib/types/graphPaper';
-
+import { COLOR_OPTIONS } from '../lib/constants';
 
 interface GraphPaperContextProps {
   selectedPointStyle: PointStyle;
@@ -44,13 +44,15 @@ export const GraphPaperProvider: React.FC<GraphPaperProviderProps> = ({ children
   const [selectedConnectPointsType, setSelectedConnectPointsType] = useState<ConnectPointsType>("finite");
   const [selectedLineStyle, setSelectedLineStyle] = useState<LineStyle>("solid");
   const [selectedTwoPointFunction, setSelectedTwoPointFunction] = useState<TwoPointFunctionType>("linear");
-  const COLOR_OPTIONS = [
-    { label: 'Red', value: '#FF0000' },
-    { label: 'Blue', value: '#0000FF' },
-    { label: 'Green', value: '#008000' },
-    { label: 'Black', value: '#000000' },
-  ];
+
   const [selectedColor, setSelectedColor] = useState<string>(COLOR_OPTIONS[0].value);  
+
+
+  // Maybe we can handle this better
+  // If selected color changes, then selected points are cleared
+  useEffect(() => {
+    setSelectedPoints([]);
+  }, [selectedColor]);
   
 
 
