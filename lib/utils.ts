@@ -31,3 +31,13 @@ export function gridToCanvas(CANVAS_SIZE: number, STEP_SIZE: number, inputX: num
     const y = (CANVAS_SIZE / 2) - (inputY * STEP_SIZE)
     return {x,y}
 }
+
+export function hexToRgba(hexColor: string, alpha: number): string {
+    const color = hexColor.replace('#', '');
+    const numericValue = parseInt(color, 16);
+    const r = (numericValue >> 16) & 0xff;
+    const g = (numericValue >> 8) & 0xff;
+    const b = numericValue & 0xff;
+  
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }

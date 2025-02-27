@@ -4,14 +4,14 @@ import { GraphPaperAction, ActionType, GraphPaperPoint,ConnectPointsType, LineSt
 import styles from '../../styles/GraphPaper.module.css';
 import { useGraphPaper } from '../../../contexts/GraphPaperContext';
 import ActionToolbar from './ActionToolbar';
-import { canvasToGrid, createPointID, gridToCanvas } from '@/lib/utils';
+import { canvasToGrid, createPointID, gridToCanvas, hexToRgba } from '@/lib/utils';
 import TypesSelectorWrapper from './TypesSelectorWrapper';
 import PlotPointInput from './PlotPointInput';
 import ColorSelector from './ColorSelector';
 
 
 const GraphPaper: React.FC = () => {
-  const { actions, addAction, removeAction, addPoint, selectedPointStyle, points, addSelectedPoint, removeSelectedPoint, selectedPoints, selectedConnectPointsType, selectedLineStyle, selectedTwoPointFunction} = useGraphPaper();
+  const { actions, addAction, removeAction, addPoint, selectedPointStyle, points, addSelectedPoint, removeSelectedPoint, selectedPoints, selectedConnectPointsType, selectedLineStyle, selectedTwoPointFunction, selectedColor} = useGraphPaper();
   const [selectedAction, setSelectedAction] = useState<ActionType | null>(null);
   const [xInput, setXInput] = useState<string>("");
   const [yInput, setYInput] = useState<string>("");
@@ -105,6 +105,11 @@ const GraphPaper: React.FC = () => {
         );
       
         if (existingPoint) {
+          if(existingPoint.color !== selectedColor){
+            alert("Cannot select this point, it is not the same color as the selected color");
+            return
+          }
+
           const pointAlreadySelected = selectedPoints.find(
             (point) => point.id === existingPoint.id
           );
@@ -112,21 +117,20 @@ const GraphPaper: React.FC = () => {
           if (pointAlreadySelected){
             removeSelectedPoint(existingPoint)
             // redraw with unselected color
-            drawPointNew(existingPoint, "red");
+            drawPointNew(existingPoint, existingPoint.color || "red");
 
             // if theres a connection between the two points
             // and removing this point breaks the connection
             // then redraw that connection in red
             
 
-
-
           }
           else{
+           
             // add to selected list
             addSelectedPoint(existingPoint)
             // redraw with selected color
-            drawPointNew(existingPoint, "blue");
+            drawSelectedPointNew(existingPoint);
 
           }
           break;
@@ -218,18 +222,10 @@ const GraphPaper: React.FC = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    
-    /*
-    const centerX = canvas.width / 2; 
-    const centerY = canvas.height / 2; 
-
-    const x = centerX + xNum * STEP_SIZE;  
-    const y = centerY - yNum * STEP_SIZE;  
-    */
 
     const pointID = createPointID();
     // backend needs inputted x and y
-    const newPoint = { x:xNum, y:yNum, id: pointID, pointStyle: selectedPointStyle };
+    const newPoint = { x:xNum, y:yNum, id: pointID, pointStyle: selectedPointStyle, color: selectedColor };
 
     //add point if it doesnt exist
     const existingPoint = points.find(
@@ -244,12 +240,12 @@ const GraphPaper: React.FC = () => {
 
     // add the point to the canvas (frontend)
     // it uses the normalized x and y 
-    drawPointNew(newPoint, "red");
+    drawPointNew(newPoint, selectedColor);
 
     const newAction = {
       actionType: "plot_point" as ActionType,
       points: [newPoint],
-      style: { pointStyle: selectedPointStyle, color: "#FF0000" },
+      style: { pointStyle: selectedPointStyle, color: selectedColor },
       
       timestamp: new Date().toISOString(),
     };
@@ -260,6 +256,7 @@ const GraphPaper: React.FC = () => {
   // old function needs the actual canvas coordinates
   // while this one will try and draw it based on the grid
   const drawPointNew = (point: GraphPaperPoint, color:string) => {
+    console.log(point)
     const canvas = canvasRef.current;
     if (canvas) {
       const ctx = canvas.getContext('2d');
@@ -286,6 +283,60 @@ const GraphPaper: React.FC = () => {
       
       }
     }
+  };
+
+  // Draws a selected point
+  // Really just draws two points, the bottom one is just black and a smaller one on top of it
+  // Might need to fix this later. If the color is black
+    // and it its filled then to show its selected it will be orange
+    // and if its unfilled it will be orange
+  const drawSelectedPointNew = (point: GraphPaperPoint) => {
+    let colorToUse = point.color || "red"
+    if (point.color === '#000000'){
+      colorToUse = 'orange'
+    }
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+  
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+  
+    const updated = gridToCanvas(CANVAS_SIZE, STEP_SIZE, point.x, point.y);
+  
+    const outerRadius = 5;
+    const innerRadius = 4; 
+
+    // if it is filled
+    switch(point.pointStyle){
+      case 'filled':
+        // 1) Draw the "outline" in black
+        ctx.beginPath();
+        ctx.arc(updated.x, updated.y, outerRadius, 0, 2 * Math.PI);
+        ctx.fillStyle = 'black';
+        ctx.fill();
+
+        // 2) Draw the normal circle in the point’s color on top
+        ctx.beginPath();
+        ctx.arc(updated.x, updated.y, innerRadius, 0, 2 * Math.PI);
+        ctx.fillStyle = colorToUse; 
+        ctx.fill();
+      break;
+
+      case 'unfilled':
+        ctx.beginPath();
+        ctx.arc(updated.x, updated.y, outerRadius, 0, 2 * Math.PI);
+        ctx.strokeStyle = "orange"; 
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      break;
+
+      default:
+      break;
+    }
+
+  
+   
+    
   };
 
 
@@ -418,7 +469,7 @@ const GraphPaper: React.FC = () => {
   
     // todo: fix this so only connections between the selected points are blue
     // when points become selected/deselected update the connection colors
-    ctx.strokeStyle = "blue"; // Connection color since selected is blue
+    ctx.strokeStyle = selectedColor; 
 
     ctx.lineWidth = 2;
     ctx.stroke();
@@ -482,11 +533,11 @@ const GraphPaper: React.FC = () => {
     drawGrid();
 
     points.forEach(point =>{
-      drawPointNew(point, 'red')
+      drawPointNew(point, point.color || "red")
     })
 
     selectedPoints.forEach(point => {
-      drawPointNew(point, 'blue')
+      drawSelectedPointNew(point)
     })
 
 
@@ -537,16 +588,15 @@ const GraphPaper: React.FC = () => {
 
       {/* todo: make the actual graph paper component */}
       {selectedAction === "plot_point" && (
-        <>
         <PlotPointInput
           xValue={xInput}
           yValue={yInput}
           onXChange={setXInput}
           onYChange={setYInput}
           onPlotPointClick={handlePlotPointFromInput} />
-          <ColorSelector />
-        </>
+       
       )}
+      {(selectedAction === "select_points" || selectedAction == "plot_point") && <ColorSelector />}
       <canvas
         ref={canvasRef}
         className={styles.canvas}
