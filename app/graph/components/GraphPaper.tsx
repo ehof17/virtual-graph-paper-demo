@@ -34,6 +34,158 @@ const GraphPaper: React.FC = () => {
     }
   }, []);
 
+const handleSelectPointsCanvasClick = (x: number, y: number) => {
+  const updated = canvasToGrid(CANVAS_SIZE, STEP_SIZE, x, y)
+
+  const existingPoint = points.find(
+    (point) => Math.abs(point.x - updated.x) < 1 && Math.abs(point.y - updated.y) < 1
+  );
+
+  if (existingPoint) {
+    if(existingPoint.color !== selectedColor){
+      alert("Cannot select this point, it is not the same color as the selected color");
+      return
+    }
+
+    const pointAlreadySelected = selectedPoints.find(
+      (point) => point.id === existingPoint.id
+    );
+
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    if (pointAlreadySelected){
+      removeSelectedPoint(existingPoint)
+      // redraw with unselected color
+      drawPoint(ctx, existingPoint);
+
+    }
+    else{
+     
+      // add to selected list
+      addSelectedPoint(existingPoint)
+      // redraw with selected color
+      drawSelectedPoint(ctx, existingPoint);
+
+    }
+  }
+}
+
+const handleConnectTwoPointsClick = (x: number, y: number): GraphPaperAction | null => {
+  const selectedPoint1 = selectedPoints[0]
+  const selectedPoint2 = selectedPoints[1]
+  // only draw the connection if it wasn't drawn before
+  const newAction = {
+    actionType: "connect_2_points",
+    points: [selectedPoint1, selectedPoint2 ],
+    style: { lineStyle: selectedLineStyle },
+    connectionType: selectedConnectPointsType,
+    functionType: selectedTwoPointFunction,
+    timestamp: new Date().toISOString(),
+  };
+
+  const existingConnectionIndex = actions.findIndex(action => 
+    action.actionType === "connect_2_points" &&
+    Array.isArray(action.points) &&
+    action.points.length === 2 &&
+    action.points.some(p => p.id === selectedPoint1.id) &&
+    action.points.some(p => p.id === selectedPoint2.id)
+  );
+  
+  if (existingConnectionIndex !== -1) {
+    const existingConnection = actions[existingConnectionIndex];
+  
+    // If the styles are different we are going to need to update everything
+    // Do we need the old action to send to inks?
+    // right now it will remove the existing one
+    // and the canvas is redrawn with every connection besides the one removed
+    const stylesChanged = (
+      existingConnection.style?.lineStyle !== selectedLineStyle || 
+      existingConnection.connectionType !== selectedConnectPointsType ||
+      existingConnection.functionType !== selectedTwoPointFunction
+
+    );
+  
+    // if its the same line, same style don't add an action to the list
+    if (!stylesChanged) {
+      alert("This connection already exists with the same style!");
+      return null;
+    }
+    else{ 
+      alert("The styles have changed");
+      removeAction(existingConnection); 
+      clearConnection(existingConnection)
+    }
+
+  }
+  else{
+    const canvas = canvasRef.current;
+    if (!canvas) return null;
+  
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+    drawTwoPointConnection(ctx, selectedPoint1, selectedPoint2, selectedConnectPointsType, selectedLineStyle, selectedTwoPointFunction, selectedColor);
+  }
+return newAction as GraphPaperAction;
+}
+
+const handleConnectThreePointsClick = (x: number, y: number): GraphPaperAction | null => {
+  if (selectedPoints.length === 3) {
+    const [point1, point2, point3] = selectedPoints;
+
+    const newAction = {
+      actionType: "connect_3_points",
+      points: [point1, point2, point3],
+      style: { lineStyle: selectedLineStyle },
+      functionType: selectedThreePointFunction, // Assuming you have this state
+      timestamp: new Date().toISOString(),
+    };
+
+    const existingConnectionIndex = actions.findIndex(action =>
+      action.actionType === "connect_3_points" &&
+      Array.isArray(action.points) &&
+      action.points.length === 3 &&
+      action.points.some(p => p.id === point1.id) &&
+      action.points.some(p => p.id === point2.id) &&
+      action.points.some(p => p.id === point3.id)
+    );
+
+    if (existingConnectionIndex !== -1) {
+      const existingConnection = actions[existingConnectionIndex];
+      const stylesChanged = (
+        existingConnection.style?.lineStyle !== selectedLineStyle ||
+        existingConnection.functionType !== selectedThreePointFunction
+      );
+
+      if (!stylesChanged) {
+        alert("This connection already exists with the same style!");
+        return null;
+      } else {
+        alert("The styles have changed");
+        removeAction(existingConnection);
+        clearConnection(existingConnection);
+      }
+    } else {
+      const canvas = canvasRef.current;
+      if (!canvas) return null;
+
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return null;
+
+      drawThreePointConnection(ctx, point1, point2, point3, selectedConnectPointsType, selectedLineStyle, selectedThreePointFunction, selectedColor);
+    }
+
+    return newAction as GraphPaperAction;
+  } else {
+    alert("Please select exactly 3 points to connect.");
+  }
+  return null;
+}
+
+
+
 
 
   const handleCanvasClick = (x: number, y: number) => {
@@ -41,163 +193,19 @@ const GraphPaper: React.FC = () => {
     
     let newAction: GraphPaperAction | null = null;
     switch (selectedAction) {
-      
-    case "select_points":
-      const updated = canvasToGrid(CANVAS_SIZE, STEP_SIZE, x, y)
+      case "select_points":
+        handleSelectPointsCanvasClick(x, y)
+        break;
 
-        const existingPoint = points.find(
-          (point) => Math.abs(point.x - updated.x) < 1 && Math.abs(point.y - updated.y) < 1
-        );
-      
-        if (existingPoint) {
-          if(existingPoint.color !== selectedColor){
-            alert("Cannot select this point, it is not the same color as the selected color");
-            return
-          }
-
-          const pointAlreadySelected = selectedPoints.find(
-            (point) => point.id === existingPoint.id
-          );
-
-          const canvas = canvasRef.current;
-          if (!canvas) return;
-          const ctx = canvas.getContext('2d');
-          if (!ctx) return;
-
-          if (pointAlreadySelected){
-            removeSelectedPoint(existingPoint)
-            // redraw with unselected color
-            
-
-            drawPoint(ctx, existingPoint);
-
-            // if theres a connection between the two points
-            // and removing this point breaks the connection
-            // then redraw that connection in red
-            
-
-          }
-          else{
-           
-            // add to selected list
-            addSelectedPoint(existingPoint)
-            // redraw with selected color
-            drawSelectedPoint(ctx, existingPoint);
-
-          }
-          break;
-        }
-
-          break;
       case "connect_2_points":
-        const selectedPoint1 = selectedPoints[0]
-        const selectedPoint2 = selectedPoints[1]
-        // only draw the connection if it wasn't drawn before
-        newAction = {
-          actionType: "connect_2_points",
-          points: [selectedPoint1, selectedPoint2 ],
-          style: { lineStyle: selectedLineStyle },
-          connectionType: selectedConnectPointsType,
-          functionType: selectedTwoPointFunction,
-          timestamp: new Date().toISOString(),
-        };
-
-        const existingConnectionIndex = actions.findIndex(action => 
-          action.actionType === "connect_2_points" &&
-          Array.isArray(action.points) &&
-          action.points.length === 2 &&
-          action.points.some(p => p.id === selectedPoint1.id) &&
-          action.points.some(p => p.id === selectedPoint2.id)
-        );
-        
-        if (existingConnectionIndex !== -1) {
-          const existingConnection = actions[existingConnectionIndex];
-        
-          // If the styles are different we are going to need to update everything
-          // Do we need the old action to send to inks?
-          // right now it will remove the existing one
-          // and the canvas is redrawn with every connection besides the one removed
-          const stylesChanged = (
-            existingConnection.style?.lineStyle !== selectedLineStyle || 
-            existingConnection.connectionType !== selectedConnectPointsType ||
-            existingConnection.functionType !== selectedTwoPointFunction
-
-          );
-        
-          // if its the same line, same style don't add an action to the list
-          if (!stylesChanged) {
-            alert("This connection already exists with the same style!");
-            return;
-          }
-          else{ 
-            alert("The styles have changed");
-            removeAction(existingConnection); 
-            clearConnection(existingConnection)
-          }
-    
-        }
-        else{
-          
-          const canvas = canvasRef.current;
-          if (!canvas) return;
-        
-          const ctx = canvas.getContext('2d');
-          if (!ctx) return;
-          drawTwoPointConnection(ctx, selectedPoint1, selectedPoint2, selectedConnectPointsType, selectedLineStyle, selectedTwoPointFunction, selectedColor);
-        }
+        newAction = handleConnectTwoPointsClick(x, y);
         break
 
-        case "connect_3_points":
-          if (selectedPoints.length === 3) {
-            const [point1, point2, point3] = selectedPoints;
+      case "connect_3_points":
+        newAction = handleConnectThreePointsClick(x, y);
+        break;
     
-            newAction = {
-              actionType: "connect_3_points",
-              points: [point1, point2, point3],
-              style: { lineStyle: selectedLineStyle },
-              functionType: selectedThreePointFunction, // Assuming you have this state
-              timestamp: new Date().toISOString(),
-            };
-    
-            const existingConnectionIndex = actions.findIndex(action =>
-              action.actionType === "connect_3_points" &&
-              Array.isArray(action.points) &&
-              action.points.length === 3 &&
-              action.points.some(p => p.id === point1.id) &&
-              action.points.some(p => p.id === point2.id) &&
-              action.points.some(p => p.id === point3.id)
-            );
-    
-            if (existingConnectionIndex !== -1) {
-              const existingConnection = actions[existingConnectionIndex];
-              const stylesChanged = (
-                existingConnection.style?.lineStyle !== selectedLineStyle ||
-                existingConnection.functionType !== selectedThreePointFunction
-              );
-    
-              if (!stylesChanged) {
-                alert("This connection already exists with the same style!");
-                return;
-              } else {
-                alert("The styles have changed");
-                removeAction(existingConnection);
-                clearConnection(existingConnection);
-              }
-            } else {
-              const canvas = canvasRef.current;
-              if (!canvas) return;
-    
-              const ctx = canvas.getContext('2d');
-              if (!ctx) return;
-    
-              drawThreePointConnection(ctx, point1, point2, point3, selectedConnectPointsType, selectedLineStyle, selectedThreePointFunction, selectedColor);
-            }
-          } else {
-            alert("Please select exactly 3 points to connect.");
-          }
-          break;
-    
-        default:
+      default:
           newAction = null;
           break;
       }
