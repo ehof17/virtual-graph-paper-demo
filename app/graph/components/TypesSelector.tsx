@@ -1,7 +1,7 @@
 // TypesSelector.tsx
 import React from 'react';
 import { useGraphPaper } from '../../../contexts/GraphPaperContext';
-import { PointStyle, ConnectPointsType, LineStyle, TwoPointFunctionType, ThreePointFunctionType} from '../../../lib/types/graphPaper'
+import { PointStyle, ConnectPointsType, LineStyle, TwoPointFunctionType, ThreePointFunctionType, FourPointFunctionType} from '../../../lib/types/graphPaper'
 import styles from '../../styles/TypesSelector.module.css';
 import { formatAction } from '@/lib/utils';
 interface TypesSelectorProps {
@@ -13,8 +13,10 @@ const availableOptions = {
   pointStyle: ["filled", "unfilled"] as PointStyle[],
   connectPointsType: ["continuous", "semi_infinite", "finite"] as ConnectPointsType[],
   lineStyle: ["solid", "dashed", "dotted"] as LineStyle[],
+  // todo: add sqrt here
   twoPointFunction: ["linear", "exponential"] as TwoPointFunctionType[],
-  threePointFunction: ["cubic", "quadratic", "square_root", "absolute_value"] as ThreePointFunctionType[],
+  threePointFunction: ["quadratic",  "absolute_value"] as ThreePointFunctionType[],
+  fourPointFunction: ["cubic"] as FourPointFunctionType[],
 };
 
 const TypesSelector: React.FC<TypesSelectorProps> = ({ type }) => {
@@ -29,6 +31,8 @@ const TypesSelector: React.FC<TypesSelectorProps> = ({ type }) => {
     setSelectedTwoPointFunction,
     selectedThreePointFunction,
     setSelectedThreePointFunction,
+    selectedFourPointFunction,
+    setSelectedFourPointFunction,
   } = useGraphPaper();
 
 
@@ -43,9 +47,17 @@ const TypesSelector: React.FC<TypesSelectorProps> = ({ type }) => {
     selected = selectedLineStyle;
     options = availableOptions.lineStyle;
   }
-  else {
+  else if (type == "two_function_style") {
     selected = selectedTwoPointFunction;
     options = availableOptions.twoPointFunction;
+  }
+  else if (type == "three_function_style") {
+    selected = selectedThreePointFunction;
+    options = availableOptions.threePointFunction;
+  }
+  else {
+    selected = selectedFourPointFunction;
+    options = availableOptions.fourPointFunction;
   }
 
   return (
