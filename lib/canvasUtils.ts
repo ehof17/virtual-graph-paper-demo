@@ -257,8 +257,10 @@ export const drawTwoPointConnection = (ctx: CanvasRenderingContext2D, point1: Gr
     ctx.setLineDash([]);
     ctx.strokeStyle = selectedColor;
     ctx.lineWidth = 2;
+    console.log({selectedThreePointFunction})
   
-    if (selectedThreePointFunction === "quadratic" || "square_root") {
+    if (selectedThreePointFunction === "quadratic") {
+        console.log("Selected three point function is the quadratic or square root")
       drawExponential(ctx, point1, point2, point3);
     } else if (selectedThreePointFunction === "absolute_value") {
       drawAbsolute(ctx, point1, point2, point3);
@@ -278,7 +280,6 @@ export const drawTwoPointConnection = (ctx: CanvasRenderingContext2D, point1: Gr
     const x1 = p1.x, y1 = p1.y;
     const x2 = p2.x, y2 = p2.y;
     const x3 = p3.x, y3 = p3.y;
-  
     // Ensure y-values are nonzero and same sign
     if (y1 * y2 <= 0 || y1 * y3 <= 0) {
       alert("Exponential function requires all y-values to have the same sign.");
@@ -340,6 +341,8 @@ for (let i = 1; i <= steps; i++) {
   ctx.lineTo(canvasPoint.x, canvasPoint.y);
 }
   };
+
+
   
   export const drawGrid = (canvas:HTMLCanvasElement) => {
 
@@ -411,6 +414,8 @@ export const drawShadedRegion = (ctx: CanvasRenderingContext2D, action: GraphPap
       }
     const { points } = action;
     const [point1, point2] = points;
+    console.log("Points in canvasUtils")
+    console.log(points)
    
     //const p1Canvas = gridToCanvas(CANVAS_SIZE, STEP_SIZE, point1.x, point1.y);
     //const p2Canvas = gridToCanvas(CANVAS_SIZE, STEP_SIZE, point2.x, point2.y);
@@ -543,10 +548,10 @@ export const drawShadedRegion = (ctx: CanvasRenderingContext2D, action: GraphPap
         if (!action.functionType) return;
         switch (action.actionType) {
             case "connect_2_points":
-                drawTwoPointConnection(ctx, action.points[0], action.points[1], action.connectionType, action.style.lineStyle, action.functionType as TwoPointFunctionType, action.style?.color || 'red');
+                drawTwoPointConnection(ctx, action.points[0], action.points[1], action.connectionType, action.style.lineStyle, action.functionType as TwoPointFunctionType, action.style?.color || action.points[0].color || 'red');
                 break;
             case "connect_3_points":
-                drawThreePointConnection(ctx, action.points[0], action.points[1], action.points[2], action.connectionType, action.style.lineStyle, action.functionType as ThreePointFunctionType, action.style?.color || 'red');
+                drawThreePointConnection(ctx, action.points[0], action.points[1], action.points[2], action.connectionType, action.style.lineStyle, action.functionType as ThreePointFunctionType, action.style?.color || action.points[0].color || 'red');
                 break;
             case "connect_4_points":
                 // drawFourPointConnection(...);

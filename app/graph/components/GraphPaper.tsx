@@ -119,21 +119,16 @@ const handleConnectTwoPointsClick = (): GraphPaperAction | null => {
       alert("The styles have changed");
       removeAction(existingConnection); 
       clearConnection(existingConnection)
-      const canvas = canvasRef.current;
-      if (!canvas) return null;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return null;
-
-       return newAction as GraphPaperAction;
+      return newAction as GraphPaperAction;
     }
 
   }
   else{
     const canvas = canvasRef.current;
     if (!canvas) return null;
-  
     const ctx = canvas.getContext('2d');
     if (!ctx) return null;
+    
     drawTwoPointConnection(ctx, selectedPoint1, selectedPoint2, selectedConnectPointsType, selectedLineStyle, selectedTwoPointFunction, selectedColor);
   }
 return newAction as GraphPaperAction;
@@ -204,7 +199,7 @@ const onlyCareAboutSingleConnect = (): GraphPaperAction | null => {
 
       if (!Array.isArray(action.points)) {
         return false;
-      }
+      }``
 
       // We want to confirm every selected point is in action.points
       const allSelectedAreInAction = selectedPoints.every((selPoint) =>
@@ -451,6 +446,7 @@ const handleShadeRegionClick = (): GraphPaperAction | null => {
   
     ctx.clearRect(0, 0, canvas.width, canvas.height); 
     redrawAllConnections(connectionToUpdate); 
+    //redrawAll(ctx, actions, points, selectedPoints);
   };
 
 
