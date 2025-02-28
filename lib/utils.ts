@@ -41,3 +41,151 @@ export function hexToRgba(hexColor: string, alpha: number): string {
   
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
   }
+
+
+
+
+  // This  stuff not used right now. Maybe never
+
+  
+// export function allSelectedPointsAreConnected(selectedPoints: GraphPaperPoint[],adjacency: Map<string, Set<string>>): boolean {
+    
+    
+//     if (selectedPoints.length < 2) return true;
+  
+//     const [firstPoint, ...rest] = selectedPoints;
+//     const visited = new Set<string>();
+//     const stack = [firstPoint.id];
+  
+//     while (stack.length > 0) {
+//       const currentId = stack.pop()!;
+//       if (!visited.has(currentId)) {
+//         visited.add(currentId);
+//         const neighbors = adjacency.get(currentId) || new Set();
+//         neighbors.forEach((neighborId) => {
+//           if (!visited.has(neighborId)) {
+//             stack.push(neighborId);
+//           }
+//         });
+//       }
+//     }
+  
+
+//     return rest.every((p) => visited.has(p.id));
+//   }
+
+// export function buildAdjacencyMap(actions: GraphPaperAction[]): Map<string, Set<string>> {
+//     // adjacency map: pointId -> set of neighbor pointIds
+//     const adjacency = new Map<string, Set<string>>();
+//     // Helper to register neighbors
+//     function addNeighbor(a: string, b: string) {
+//       if (!adjacency.has(a)) {
+//         adjacency.set(a, new Set());
+//       }
+//       adjacency.get(a)?.add(b);
+//     }
+  
+//     actions.forEach((action) => {
+//       if (
+//         action.actionType === 'connect_2_points' ||
+//         action.actionType === 'connect_3_points' ||
+//         action.actionType === 'connect_4_points'
+//       ) {
+//         const pts = action.points;
+//         if (pts && pts.length > 1) {
+//           for (let i = 0; i < pts.length; i++) {
+//             for (let j = i + 1; j < pts.length; j++) {
+//               addNeighbor(pts[i].id, pts[j].id);
+//               addNeighbor(pts[j].id, pts[i].id);
+//             }
+//           }
+//         }
+//       }
+//     });
+  
+//     return adjacency;
+//   }
+
+
+//   export interface NeighborEdge {
+//     neighborId: string;
+//     action: GraphPaperAction; // the connect_x_points action that links these two points
+//   }
+  
+//   function buildAdjacencyMapWithActions(
+//     actions: GraphPaperAction[]
+//   ): Map<string, NeighborEdge[]> {
+//     const adjacency = new Map<string, NeighborEdge[]>();
+  
+//     // Helper to add neighbor
+//     function addNeighbor(a: string, b: string, action: GraphPaperAction) {
+//       if (!adjacency.has(a)) {
+//         adjacency.set(a, []);
+//       }
+//       adjacency.get(a)?.push({ neighborId: b, action });
+//     }
+  
+//     for (const act of actions) {
+//       if (
+//         act.actionType === 'connect_2_points' ||
+//         act.actionType === 'connect_3_points' ||
+//         act.actionType === 'connect_4_points'
+//       ) {
+//         const pts = act.points;
+//         if (pts && pts.length > 1) {
+//           // For every pair of points in this action, link them
+//           for (let i = 0; i < pts.length; i++) {
+//             for (let j = i + 1; j < pts.length; j++) {
+//               const aId = pts[i].id;
+//               const bId = pts[j].id;
+//               addNeighbor(aId, bId, act);
+//               addNeighbor(bId, aId, act);
+//             }
+//           }
+//         }
+//       }
+//     }
+  
+//     return adjacency;
+//   }
+//   export function findAllConnectionActionsForSelected(
+//     selectedPoints: GraphPaperPoint[],
+//     allActions: GraphPaperAction[]
+//   ): GraphPaperAction[] | null {
+//     if (selectedPoints.length <= 1) {
+//       // With 1 or 0 points, no "connection" is really needed
+//       return [];
+//     }
+  
+//     // 1) Build the adjacency map
+//     const adjacency = buildAdjacencyMapWithActions(allActions);
+  
+//     const visited = new Set<string>();
+//     const actionsUsed = new Set<GraphPaperAction>();
+//     const queue: string[] = [];
+  
+//     const startId = selectedPoints[0].id;
+//     queue.push(startId);
+//     visited.add(startId);
+  
+//     while (queue.length > 0) {
+//       const currentId = queue.shift()!;
+//       const edges = adjacency.get(currentId) || [];
+  
+//       for (const { neighborId, action } of edges) {
+//         if (!visited.has(neighborId)) {
+//           visited.add(neighborId);
+//           actionsUsed.add(action);
+//           queue.push(neighborId);
+//         }
+//       }
+//     }
+  
+//     const allSelectedVisited = selectedPoints.every((p) => visited.has(p.id));
+//     if (!allSelectedVisited) {
+//       return null;
+//     }
+  
+//     return Array.from(actionsUsed);
+//   }
+

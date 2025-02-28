@@ -4,16 +4,16 @@ import { GraphPaperAction, ActionType} from '../../../lib/types/graphPaper';
 import styles from '../../styles/GraphPaper.module.css';
 import { useGraphPaper } from '../../../contexts/GraphPaperContext';
 import ActionToolbar from './ActionToolbar';
-import { canvasToGrid, createPointID } from '@/lib/utils';
+import {  canvasToGrid, createPointID } from '@/lib/utils';
 import TypesSelectorWrapper from './TypesSelectorWrapper';
 import PlotPointInput from './PlotPointInput';
 import ColorSelector from './ColorSelector';
-import { drawGrid, drawPoint, drawSelectedPoint, drawThreePointConnection, drawTwoPointConnection } from '@/lib/canvasUtils';
+import { drawGrid, drawPoint, drawSelectedPoint, drawShadedRegion, drawThreePointConnection, drawTwoPointConnection, redrawAll } from '@/lib/canvasUtils';
 import { CANVAS_SIZE, RANGE, STEP_SIZE } from '@/lib/constants';
 
 
 const GraphPaper: React.FC = () => {
-  const { actions, addAction, removeAction, addPoint, selectedPointStyle, points, addSelectedPoint, removeSelectedPoint, selectedPoints, selectedConnectPointsType, selectedLineStyle, selectedTwoPointFunction, selectedThreePointFunction, selectedColor} = useGraphPaper();
+  const { actions, addAction, removeAction, addPoint, selectedPointStyle, points, addSelectedPoint, removeSelectedPoint, selectedPoints, selectedConnectPointsType, selectedLineStyle, selectedTwoPointFunction, selectedThreePointFunction, selectedColor, selectedShadeType} = useGraphPaper();
   const [selectedAction, setSelectedAction] = useState<ActionType | null>(null);
   const [xInput, setXInput] = useState<string>("");
   const [yInput, setYInput] = useState<string>("");
@@ -93,6 +93,8 @@ const handleConnectTwoPointsClick = (): GraphPaperAction | null => {
     action.points.some(p => p.id === selectedPoint1.id) &&
     action.points.some(p => p.id === selectedPoint2.id)
   );
+
+  
   
   if (existingConnectionIndex !== -1) {
     const existingConnection = actions[existingConnectionIndex];
@@ -117,6 +119,12 @@ const handleConnectTwoPointsClick = (): GraphPaperAction | null => {
       alert("The styles have changed");
       removeAction(existingConnection); 
       clearConnection(existingConnection)
+      const canvas = canvasRef.current;
+      if (!canvas) return null;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return null;
+
+       return newAction as GraphPaperAction;
     }
 
   }
@@ -185,6 +193,164 @@ const handleConnectThreePointsClick = (): GraphPaperAction | null => {
 }
 
 
+const onlyCareAboutSingleConnect = (): GraphPaperAction | null => {
+
+  const connectionsAllSelected = actions.filter((action) => {
+    if (
+      action.actionType === "connect_2_points" ||
+      action.actionType === "connect_3_points" ||
+      action.actionType === "connect_4_points" 
+    ) {
+
+      if (!Array.isArray(action.points)) {
+        return false;
+      }
+
+      // We want to confirm every selected point is in action.points
+      const allSelectedAreInAction = selectedPoints.every((selPoint) =>
+        action?.points?.some((actPoint) => actPoint.id === selPoint.id)
+      );
+
+      return allSelectedAreInAction;
+    }
+    return false;
+  });
+  const [connectionAction] = connectionsAllSelected;
+  if (!connectionAction) return null;
+
+
+
+  const canvas = canvasRef.current;
+  if (!canvas) return null;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return null;
+
+
+  const existingShadeAction = actions.find((action) => {
+    if (action.actionType !== "shade_region") return false;
+    if (!Array.isArray(action.points)) return false;
+    if (action.points.length !== connectionAction.points?.length) return false;
+  
+    return connectionAction.points?.every((connPoint) =>
+      action.points?.some((shadedPoint) => shadedPoint.id === connPoint.id)
+    );
+  });
+
+  if (existingShadeAction) {
+
+    if (existingShadeAction.ShadeType === selectedShadeType) {
+    // gotta Unshade it
+    alert("This region is already shaded.");
+    return null;
+  }
+  else{
+    removeAction(existingShadeAction);
+    redrawAll(ctx, actions, points, selectedPoints);
+  }
+
+  }
+
+  const newAction: GraphPaperAction = {
+    actionType: "shade_region",   
+    points: connectionAction.points,
+    style: { color: selectedColor }, 
+    timestamp: new Date().toISOString(),
+    ShadeType: selectedShadeType,
+  };
+
+ 
+
+  drawShadedRegion(ctx, connectionAction, selectedShadeType)
+  return newAction;
+
+}
+
+
+
+
+// Todo... Handle multiple connections, like if a,b,c are selected and a->b, b->c
+
+// for now.. just handle single connects
+const handleShadeRegionClick = (): GraphPaperAction | null => {
+
+  return onlyCareAboutSingleConnect()
+
+  // // go through the selected points
+  // // and the actions
+  // // and see if all the selected points are in a single connect_points action
+  // // if so, shade the region
+  // const connectionsAllSelected = actions.filter((action) => {
+  //   if (
+  //     action.actionType === "connect_2_points" ||
+  //     action.actionType === "connect_3_points" ||
+  //     action.actionType === "connect_4_points" 
+  //   ) {
+
+  //     if (!Array.isArray(action.points)) {
+  //       return false;
+  //     }
+
+  //     // We want to confirm every selected point is in action.points
+  //     const allSelectedAreInAction = selectedPoints.every((selPoint) =>
+  //       action?.points?.some((actPoint) => actPoint.id === selPoint.id)
+  //     );
+
+  //     return allSelectedAreInAction;
+  //   }
+  //   return false;
+  // });
+  
+ 
+
+  // // otherwise, we might have multiple connections making the region
+  // // like connections between a and b, and b and c where a,b,c are all selected
+  // const connectionActions = findAllConnectionActionsForSelected(selectedPoints, actions);
+
+  // console.log("Here are connectionActions")
+  // console.log(connectionActions)
+
+  // console.log("And is the og connection action")
+  // const [connectionAction] = connectionsAllSelected;
+  // console.log(connectionAction)
+
+  // const isRegionShadedAlready = actions.some((action) => {
+  //   if (action.actionType !== "shade_region") return false;
+
+  //   if (!Array.isArray(action.points)) return false;
+  //   if (action.points.length !== connectionAction.points?.length) return false;
+
+  
+  //   return connectionAction.points?.every((connPoint) =>
+  //     action.points?.some((shadedPoint) => shadedPoint.id === connPoint.id)
+  //   );
+  // });
+
+  // if (isRegionShadedAlready) {
+  //   alert("This region is already shaded.");
+  //   return null;
+  // }
+
+
+
+  // console.log(isRegionShadedAlready)
+  // console.log(connectionAction)
+
+  // const newAction: GraphPaperAction = {
+  //   actionType: "shade_region",   
+  //   points: connectionAction.points,
+  //   style: { color: selectedColor }, 
+  //   timestamp: new Date().toISOString(),
+  //   ShadeType: selectedShadeType,
+  // };
+  // console.log(newAction)
+
+  // return newAction;
+
+
+
+}
+
+
 
 
 
@@ -203,6 +369,10 @@ const handleConnectThreePointsClick = (): GraphPaperAction | null => {
 
       case "connect_3_points":
         newAction = handleConnectThreePointsClick();
+        break;
+
+      case "shade_region":
+        newAction = handleShadeRegionClick();
         break;
     
       default:
@@ -270,6 +440,8 @@ const handleConnectThreePointsClick = (): GraphPaperAction | null => {
   };
 
 
+
+  // todo: Clean this up
   const clearConnection = (connectionToUpdate: GraphPaperAction) => {
     const canvas = canvasRef.current;
     if (!canvas) return;

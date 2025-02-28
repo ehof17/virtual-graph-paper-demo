@@ -54,6 +54,7 @@ export interface GraphPaperAction {
   style?: ActionStyle;
   connectionType?: ConnectPointsType;
   functionType?: TwoPointFunctionType | ThreePointFunctionType;
+  ShadeType?: ShadeType;
   timestamp: string;
  
 }
