@@ -128,7 +128,7 @@ const handleConnectTwoPointsClick = (): GraphPaperAction | null => {
     if (!canvas) return null;
     const ctx = canvas.getContext('2d');
     if (!ctx) return null;
-    
+
     drawTwoPointConnection(ctx, selectedPoint1, selectedPoint2, selectedConnectPointsType, selectedLineStyle, selectedTwoPointFunction, selectedColor);
   }
 return newAction as GraphPaperAction;
@@ -199,7 +199,7 @@ const onlyCareAboutSingleConnect = (): GraphPaperAction | null => {
 
       if (!Array.isArray(action.points)) {
         return false;
-      }``
+      }
 
       // We want to confirm every selected point is in action.points
       const allSelectedAreInAction = selectedPoints.every((selPoint) =>
