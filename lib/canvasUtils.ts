@@ -280,34 +280,42 @@ export const drawTwoPointConnection = (ctx: CanvasRenderingContext2D, point1: Gr
     const x1 = p1.x, y1 = p1.y;
     const x2 = p2.x, y2 = p2.y;
     const x3 = p3.x, y3 = p3.y;
-    // Ensure y-values are nonzero and same sign
+  
+    // Ensure all y-values are nonzero and have the same sign
     if (y1 * y2 <= 0 || y1 * y3 <= 0) {
       alert("Exponential function requires all y-values to have the same sign.");
       return;
     }
   
-    // Solve for `b` using logarithms
-    const b = Math.exp(
-      (Math.log(y3 / y1) - Math.log(y2 / y1) * (x3 - x1) / (x2 - x1)) /
-        ((x3 - x1) - (x2 - x1))
-    );
+    // Solve for 'b' using logarithms
+    const logY1 = Math.log(y1);
+    const logY2 = Math.log(y2);
+    const logY3 = Math.log(y3);
+  
+    const b = Math.exp((logY3 - logY2) / (x3 - x2));
     const a = y1 / Math.pow(b, x1);
   
+    // Define drawing range from x = -10 to x = 10
     const steps = 500;
-    const startX = Math.min(x1, x2, x3) - 2;
-    const endX = Math.max(x1, x2, x3) + 2;
+    const startX = -10;
+    const endX = 10;
     const stepSize = (endX - startX) / steps;
   
-    const startCanvas = gridToCanvas(CANVAS_SIZE, STEP_SIZE, startX, a * Math.abs(startX - x2) + y2);
-ctx.moveTo(startCanvas.x, startCanvas.y);
-
+    ctx.beginPath();
   
-    for (let i = 1; i <= steps; i++) {
+    for (let i = 0; i <= steps; i++) {
       const x = startX + i * stepSize;
       const y = a * Math.pow(b, x);
       const canvasPoint = gridToCanvas(CANVAS_SIZE, STEP_SIZE, x, y);
-      ctx.lineTo(canvasPoint.x, canvasPoint.y);
+      
+      if (i === 0) {
+        ctx.moveTo(canvasPoint.x, canvasPoint.y);
+      } else {
+        ctx.lineTo(canvasPoint.x, canvasPoint.y);
+      }
     }
+  
+    ctx.stroke();
   };
   
   // Absolute value function fitting y = a |x - h| + k
@@ -325,22 +333,29 @@ ctx.moveTo(startCanvas.x, startCanvas.y);
     // Solve for `a` using one of the other points
     const a = (sortedP1.y - k) / Math.abs(sortedP1.x - h);
   
+    // Define drawing range from x = -10 to x = 10
     const steps = 500;
-    const startX = sortedP1.x - 2;
-    const endX = sortedP3.x + 2;
+    const startX = -10;
+    const endX = 10;
     const stepSize = (endX - startX) / steps;
   
-    const startCanvas = gridToCanvas(CANVAS_SIZE, STEP_SIZE, startX, a * Math.abs(startX - h) + k);
-ctx.moveTo(startCanvas.x, startCanvas.y);
-
+    ctx.beginPath();
   
-for (let i = 1; i <= steps; i++) {
-  const x = startX + i * stepSize;
-  const y = a * Math.abs(x - h) + k;
-  const canvasPoint = gridToCanvas(CANVAS_SIZE, STEP_SIZE, x, y);
-  ctx.lineTo(canvasPoint.x, canvasPoint.y);
-}
+    for (let i = 0; i <= steps; i++) {
+      const x = startX + i * stepSize;
+      const y = a * Math.abs(x - h) + k;
+      const canvasPoint = gridToCanvas(CANVAS_SIZE, STEP_SIZE, x, y);
+      
+      if (i === 0) {
+        ctx.moveTo(canvasPoint.x, canvasPoint.y);
+      } else {
+        ctx.lineTo(canvasPoint.x, canvasPoint.y);
+      }
+    }
+  
+    ctx.stroke();
   };
+
 
 
   
