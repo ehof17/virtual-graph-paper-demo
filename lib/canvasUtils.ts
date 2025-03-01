@@ -288,7 +288,7 @@ export const drawTwoPointConnection = (ctx: CanvasRenderingContext2D, point1: Gr
     }
   
     // Solve for 'b' using logarithms
-    const logY1 = Math.log(y1);
+    //const logY1 = Math.log(y1);
     const logY2 = Math.log(y2);
     const logY3 = Math.log(y3);
   
@@ -326,7 +326,7 @@ export const drawTwoPointConnection = (ctx: CanvasRenderingContext2D, point1: Gr
     p3: GraphPaperPoint
   ) => {
     // Find the vertex (h, k)
-    const [sortedP1, sortedP2, sortedP3] = [p1, p2, p3].sort((a, b) => a.x - b.x);
+    const [sortedP1, sortedP2] = [p1, p2, p3].sort((a, b) => a.x - b.x);
     const h = sortedP2.x;
     const k = sortedP2.y;
   
