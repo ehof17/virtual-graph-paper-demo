@@ -4,13 +4,8 @@ import React from 'react';
 import styles from '../../styles/ColorSelector.module.css';
 
 import { useGraphPaper } from '../../../contexts/GraphPaperContext';
+import { COLOR_OPTIONS } from '@/lib/constants';
 
-const COLOR_OPTIONS = [
-  { label: 'Red', value: '#FF0000' },
-  { label: 'Blue', value: '#0000FF' },
-  { label: 'Green', value: '#008000' },
-  { label: 'Black', value: '#000000' },
-];
 
 const ColorSelector: React.FC = () => {
   const { selectedColor, setSelectedColor } = useGraphPaper();

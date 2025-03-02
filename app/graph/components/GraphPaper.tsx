@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useRef, useEffect} from 'react';
-import { GraphPaperAction, ActionType} from '../../../lib/types/graphPaper';
+import { GraphPaperAction, ActionType, FunctionParams, TwoPointFunctionType, ThreePointFunctionType} from '../../../lib/types/graphPaper';
 import styles from '../../styles/GraphPaper.module.css';
 import { useGraphPaper } from '../../../contexts/GraphPaperContext';
 import ActionToolbar from './ActionToolbar';
@@ -8,8 +8,13 @@ import {  canvasToGrid, createPointID } from '@/lib/utils';
 import TypesSelectorWrapper from './TypesSelectorWrapper';
 import PlotPointInput from './PlotPointInput';
 import ColorSelector from './ColorSelector';
-import { drawGrid, drawPoint, drawSelectedPoint, drawShadedRegion, drawThreePointConnection, drawTwoPointConnection, redrawAll } from '@/lib/canvasUtils';
+import { drawGrid, drawPoint, drawSelectedPoint, redrawAll } from '@/lib/canvasUtils';
+import { drawThreePointConnection } from '@/lib/threePointCanvas';
 import { CANVAS_SIZE, RANGE, STEP_SIZE } from '@/lib/constants';
+import { drawTwoPointConnection } from '@/lib/twoPointCanvas';
+import { drawShadedRegion } from '@/lib/shadedRegion';
+import ErrorModal from './ErrorModal';
+import FunctionDisplay from './FunctionDisplay';
 
 
 const GraphPaper: React.FC = () => {
@@ -17,6 +22,9 @@ const GraphPaper: React.FC = () => {
   const [selectedAction, setSelectedAction] = useState<ActionType | null>(null);
   const [xInput, setXInput] = useState<string>("");
   const [yInput, setYInput] = useState<string>("");
+  const [errorMessage, setErrorMessage] = useState<string>("");
+  const [showError, setShowError] = useState<boolean>(false);
+  const [lastGraphedFunc, setLastGraphedFunc] = useState<FunctionParams>();
 
   // this will be replaced with the actual graph paper
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -74,10 +82,10 @@ const handleSelectPointsCanvasClick = (x: number, y: number) => {
 }
 
 const handleConnectTwoPointsClick = (): GraphPaperAction | null => {
-  const selectedPoint1 = selectedPoints[0]
-  const selectedPoint2 = selectedPoints[1]
+  const [selectedPoint1, selectedPoint2] = selectedPoints;
+  let res:FunctionParams|null;
   // only draw the connection if it wasn't drawn before
-  const newAction = {
+  const newAction:GraphPaperAction= {
     actionType: "connect_2_points",
     points: [selectedPoint1, selectedPoint2 ],
     style: { lineStyle: selectedLineStyle },
@@ -93,6 +101,10 @@ const handleConnectTwoPointsClick = (): GraphPaperAction | null => {
     action.points.some(p => p.id === selectedPoint1.id) &&
     action.points.some(p => p.id === selectedPoint2.id)
   );
+  const canvas = canvasRef.current;
+  if (!canvas) return null;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return null;
 
   
   
@@ -119,17 +131,31 @@ const handleConnectTwoPointsClick = (): GraphPaperAction | null => {
       alert("The styles have changed");
       removeAction(existingConnection); 
       clearConnection(existingConnection)
+      res = drawTwoPointConnection(ctx, selectedPoint1, selectedPoint2, selectedConnectPointsType, selectedLineStyle, selectedTwoPointFunction);
+      if (res?.valid){
+        setLastGraphedFunc(res);
+        newAction.success = true;
+      }
+      else{
+        setErrorMessage(res?.message || "Invalid connection");
+        setShowError(true);
+        newAction.success = false;
+      }
       return newAction as GraphPaperAction;
     }
 
   }
   else{
-    const canvas = canvasRef.current;
-    if (!canvas) return null;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return null;
-
-    drawTwoPointConnection(ctx, selectedPoint1, selectedPoint2, selectedConnectPointsType, selectedLineStyle, selectedTwoPointFunction, selectedColor);
+    res = drawTwoPointConnection(ctx, selectedPoint1, selectedPoint2, selectedConnectPointsType, selectedLineStyle, selectedTwoPointFunction);
+    if (res?.valid){
+      setLastGraphedFunc(res);
+      newAction.success = true;
+    }
+    else{
+      setErrorMessage(res?.message || "Invalid connection");
+      setShowError(true);
+      newAction.success = false;
+    }
   }
 return newAction as GraphPaperAction;
 }
@@ -137,8 +163,9 @@ return newAction as GraphPaperAction;
 const handleConnectThreePointsClick = (): GraphPaperAction | null => {
   if (selectedPoints.length === 3) {
     const [point1, point2, point3] = selectedPoints;
+    let res:FunctionParams|null;
 
-    const newAction = {
+    const newAction:GraphPaperAction = {
       actionType: "connect_3_points",
       points: [point1, point2, point3],
       style: { lineStyle: selectedLineStyle },
@@ -155,13 +182,21 @@ const handleConnectThreePointsClick = (): GraphPaperAction | null => {
       action.points.some(p => p.id === point3.id)
     );
 
+    const canvas = canvasRef.current;
+    if (!canvas) return null;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+
+
     if (existingConnectionIndex !== -1) {
       const existingConnection = actions[existingConnectionIndex];
       const stylesChanged = (
         existingConnection.style?.lineStyle !== selectedLineStyle ||
-        existingConnection.functionType !== selectedThreePointFunction
+        existingConnection.functionType !== selectedThreePointFunction ||
+        existingConnection.connectionType !== selectedConnectPointsType
       );
-
+     
       if (!stylesChanged) {
         alert("This connection already exists with the same style!");
         return null;
@@ -169,15 +204,28 @@ const handleConnectThreePointsClick = (): GraphPaperAction | null => {
         alert("The styles have changed");
         removeAction(existingConnection);
         clearConnection(existingConnection);
+        res = drawThreePointConnection(ctx, point1, point2, point3, selectedConnectPointsType, selectedLineStyle, selectedThreePointFunction, selectedColor);
+        if (res?.valid){
+          setLastGraphedFunc(res);
+          newAction.success = true;
+        }
+        else{
+          setErrorMessage(res?.message || "Invalid connection");
+          setShowError(true);
+          newAction.success = false;
+        }
       }
     } else {
-      const canvas = canvasRef.current;
-      if (!canvas) return null;
-
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return null;
-
-      drawThreePointConnection(ctx, point1, point2, point3, selectedConnectPointsType, selectedLineStyle, selectedThreePointFunction, selectedColor);
+      res = drawThreePointConnection(ctx, point1, point2, point3, selectedConnectPointsType, selectedLineStyle, selectedThreePointFunction, selectedColor);
+      if (res?.valid){
+        setLastGraphedFunc(res);
+        newAction.success = true;
+      }
+      else{
+        setErrorMessage(res?.message || "Invalid connection");
+        setShowError(true);
+        newAction.success = false;
+      }
     }
 
     return newAction as GraphPaperAction;
@@ -475,6 +523,8 @@ const handleShadeRegionClick = (): GraphPaperAction | null => {
       // Draw the existing connections the same way that they were drawn originally
       let connectionType = action.connectionType;
       let lineStyle = action.style?.lineStyle;
+      let color = action.style?.color || 'red';
+      let func = action.functionType || 'linear';
 
       if (action.actionType === "connect_2_points") {
         if (action.points?.length === 2) {
@@ -492,9 +542,12 @@ const handleShadeRegionClick = (): GraphPaperAction | null => {
           ) {
             connectionType = selectedConnectPointsType
             lineStyle = selectedLineStyle
+            if (selectedTwoPointFunction){
+              func = selectedTwoPointFunction
+            }
           }
 
-    
+          
           if (connectionType && lineStyle) {
             const canvas = canvasRef.current;
             if (!canvas) return;
@@ -507,16 +560,16 @@ const handleShadeRegionClick = (): GraphPaperAction | null => {
               action.points[1],
               connectionType,
               lineStyle,
-              selectedTwoPointFunction,
-              selectedColor
+              func as TwoPointFunctionType,
             );
           }
         }
       }
+
       if (action.actionType === "connect_3_points") {
         if (action.points?.length === 3) {
-          const actionPoint = action.points[0]
-          const actionPoint2 = action.points[1]
+          const [actionPoint, actionPoint2, actionPoint3] = action.points
+
 
           // If the action is a connect points action and it matches the points attached to the passed in 
           // action to update
@@ -525,10 +578,14 @@ const handleShadeRegionClick = (): GraphPaperAction | null => {
             Array.isArray(connectionToUpdate.points) &&
             connectionToUpdate.points.length === 2 &&
             connectionToUpdate.points.some(p => p.id === actionPoint.id) &&
-            connectionToUpdate.points.some(p => p.id === actionPoint2.id)
+            connectionToUpdate.points.some(p => p.id === actionPoint2.id) &&
+            connectionToUpdate.points.some(p => p.id === actionPoint3.id)
           ) {
             connectionType = selectedConnectPointsType
             lineStyle = selectedLineStyle
+            color = selectedColor
+            func = selectedThreePointFunction
+
           }
 
     
@@ -545,8 +602,8 @@ const handleShadeRegionClick = (): GraphPaperAction | null => {
               action.points[2],
               connectionType,
               lineStyle,
-              selectedThreePointFunction,
-              selectedColor
+              func as ThreePointFunctionType,
+              color
             );
           }
         }
@@ -571,7 +628,13 @@ const handleShadeRegionClick = (): GraphPaperAction | null => {
        
       )}
       {(selectedAction === "select_points" || selectedAction == "plot_point") && <ColorSelector />}
-
+      
+      <ErrorModal
+      show={showError}
+      message={errorMessage}
+      onClose={() => setShowError(false)}
+      />
+      {lastGraphedFunc && <FunctionDisplay params={lastGraphedFunc} />}
       <canvas
         ref={canvasRef}
         className={styles.canvas}

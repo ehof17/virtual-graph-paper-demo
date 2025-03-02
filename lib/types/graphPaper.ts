@@ -20,8 +20,9 @@ export type ConnectPointsType =
 export type LineStyle = "solid" | "dashed" | "dotted";
 
 // todo: add sqrt here
-export type TwoPointFunctionType= "linear" | "exponential";
-export type ThreePointFunctionType = "quadratic" |  "absolute_value";
+export type FunctionType  = TwoPointFunctionType | ThreePointFunctionType | FourPointFunctionType;
+export type TwoPointFunctionType= "linear";
+export type ThreePointFunctionType = "quadratic" |  "absolute_value" | "square_root";
 export type FourPointFunctionType = "cubic"
 
 export type ShadeType = "above" | "below";
@@ -55,6 +56,7 @@ export interface GraphPaperAction {
   connectionType?: ConnectPointsType;
   functionType?: TwoPointFunctionType | ThreePointFunctionType;
   ShadeType?: ShadeType;
+  success?: boolean;
   timestamp: string;
  
 }
@@ -62,4 +64,16 @@ export interface GraphPaperAction {
 export interface GraphPaperSession {
   actions: GraphPaperAction[];
   sessionId?: string;
+}
+
+export interface FunctionParams {
+  A?: number;
+  B?: number;
+  C?: number;
+  H?: number;
+  K?: number;
+  M?: number;
+  message?: string;
+  valid: boolean;
+  type: FunctionType;
 }

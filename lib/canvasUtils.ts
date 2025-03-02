@@ -1,6 +1,9 @@
 import { CANVAS_SIZE, RANGE, STEP_SIZE } from "./constants";
-import { ConnectPointsType, GraphPaperPoint, LineStyle, TwoPointFunctionType, ThreePointFunctionType, GraphPaperAction, ShadeType } from "./types/graphPaper";
-import { gridToCanvas, hexToRgba } from "./utils";
+import { drawShadedRegion } from "./shadedRegion";
+import { drawThreePointConnection } from "./threePointCanvas";
+import { drawTwoPointConnection } from "./twoPointCanvas";
+import { GraphPaperPoint,  TwoPointFunctionType, ThreePointFunctionType, GraphPaperAction } from "./types/graphPaper";
+import { gridToCanvas } from "./utils";
 
  // old function needs the actual canvas coordinates
   // while this one will try and draw it based on the grid
@@ -79,285 +82,6 @@ export const drawSelectedPoint = (ctx: CanvasRenderingContext2D, point: GraphPap
     
   };
 
-
-export const drawTwoPointConnection = (ctx: CanvasRenderingContext2D, point1: GraphPaperPoint, point2: GraphPaperPoint, connectionType: ConnectPointsType, lineStyle: LineStyle, selectedTwoPointFunction: TwoPointFunctionType, selectedColor: string) => {
-    if (!ctx) return;
-  
-    ctx.beginPath();
-    const point1Norm = gridToCanvas(CANVAS_SIZE, STEP_SIZE, point1.x, point1.y)
-    const point2Norm = gridToCanvas(CANVAS_SIZE, STEP_SIZE, point2.x, point2.y)
-    ctx.moveTo(point1Norm.x, point1Norm.y);
-
-    // Set line styles
-    switch (lineStyle) {
-      case "dashed":
-        ctx.setLineDash([10, 5]); // Dash pattern
-        break;
-      case "dotted":
-        // todo: fix this
-        // this throws off the grid pattern
-        ctx.setLineDash([2, 4]); // Dotted pattern
-        break;
-      default:
-        ctx.setLineDash([]); 
-        break;
-    }
-
-    // handle linear vs exponential
-    switch (selectedTwoPointFunction) {
-
-      case "linear":
-        console.log("linear")
-        switch (connectionType) {
-          case "finite":
-            ctx.lineTo(point2Norm.x, point2Norm.y);
-            break;
-          case "semi_infinite":
-            extendRay(ctx, point1, point2);
-            break;
-          case "continuous":
-            extendLine(ctx, point1, point2);
-            break;
-          default:
-            break;
-        }
-      break;
-      // todo: make this work with the connection type
-      case "exponential":
-        const x1 = point1.x;
-        const y1 = point1.y;
-        const x2 = point2.x;
-        const y2 = point2.y;
-      
-        if (y1 === 0 || y2 === 0) {
-          alert("Exponential requires non-zero y-values.");
-          return; // stop drawing
-        }
-        // If signs differ (one positive, one negative) => fail
-        if ((y1 < 0 && y2 > 0) || (y1 > 0 && y2 < 0)) {
-          alert("Exponential requires both points' y-values to have the same sign.");
-          return; 
-        }
-        // Also ensure x1 !== x2 so we don't divide by zero
-        if (x1 === x2) {
-          alert("Exponential requires two distinct x-values.");
-          return;
-        }
-    
-
-        // 2. Solve for a and b
-        const b = (y2 / y1) ** (1 / (x2 - x1));
-        const a = y1 / (b ** x1);
-      
-        let startX = Math.min(x1, x2);
-        let endX   = Math.max(x1, x2);
-
-        if (connectionType === "semi_infinite") {
-          startX = Math.min(x1, x2);
-          endX = RANGE;
-        }
-        if (connectionType === "finite") {
-          // Draw only between the two points
-          startX = Math.min(x1, x2);
-          endX = Math.max(x1, x2);
-        }
-        if (connectionType === "continuous") {
-          // Draw between the two points
-          startX = -RANGE;
-          endX = RANGE;
-        }
-
-
-      
-        // How many steps? More steps => smoother curve
-        const steps = 500; 
-        const stepSize = (endX - startX) / steps;
-      
-        const currentX = startX;
-        const currentY = a * (b ** currentX);
-      
-        // Convert that to canvas coords
-        const startCanvas = gridToCanvas(CANVAS_SIZE, STEP_SIZE, currentX, currentY);
-        ctx.moveTo(startCanvas.x, startCanvas.y);
-      
-        for (let i = 1; i <= steps; i++) {
-          const nextX = startX + i * stepSize;
-          const nextY = a * (b ** nextX);
-      
-          const nextCanvas = gridToCanvas(CANVAS_SIZE, STEP_SIZE, nextX, nextY);
-          console.log(nextCanvas)
-      
-          ctx.lineTo(nextCanvas.x, nextCanvas.y);
-        }
-      
-        break;
-
-
-      default:
-        break;
-
-    }
-
-
-  
-    ctx.strokeStyle = selectedColor; 
-
-    ctx.lineWidth = 2;
-    ctx.stroke();
-  };
-  
-  
-
-
-
-
-  // Todo... add arrowheads for lines and rays
-  export const extendRay = (ctx: CanvasRenderingContext2D, p1: GraphPaperPoint, p2: GraphPaperPoint) => {
-    const p1Norm = gridToCanvas(CANVAS_SIZE, STEP_SIZE, p1.x, p1.y)
-    const p2Norm = gridToCanvas(CANVAS_SIZE, STEP_SIZE, p2.x, p2.y)
-
-    const dx = p2Norm.x - p1Norm.x;
-    const dy = p2Norm.y - p1Norm.y;
-    const scale = 1000; 
-    const endX = p2Norm.x + dx * scale;
-    const endY = p2Norm.y + dy * scale;
-  
-    ctx.lineTo(endX, endY);
-    ctx.stroke();
-  };
-
-  
-  // Extend a full line both directions and add arrows on both ends
-  const extendLine = (ctx: CanvasRenderingContext2D, p1: GraphPaperPoint, p2: GraphPaperPoint) => {
-    const p1Norm = gridToCanvas(CANVAS_SIZE, STEP_SIZE, p1.x, p1.y)
-    const p2Norm = gridToCanvas(CANVAS_SIZE, STEP_SIZE, p2.x, p2.y)
-
-    const dx = p2Norm.x - p1Norm.x;
-    const dy = p2Norm.y - p1Norm.y;
-    const scale = 1000; 
-  
-    const startX = p1Norm.x - dx * scale;
-    const startY = p1Norm.y - dy * scale;
-    const endX = p2Norm.x + dx * scale;
-    const endY = p2Norm.y + dy * scale;
-  
-    ctx.moveTo(startX, startY);
-    ctx.lineTo(endX, endY);
-    ctx.stroke();
-  };
-
-  export const drawThreePointConnection = (ctx: CanvasRenderingContext2D, point1: GraphPaperPoint, point2: GraphPaperPoint, point3: GraphPaperPoint, connectionType: ConnectPointsType, lineStyle: LineStyle, selectedThreePointFunction: ThreePointFunctionType, selectedColor: string) => {
-    if (!ctx) return;
-  
-   // const p1 = gridToCanvas(CANVAS_SIZE, STEP_SIZE, point1.x, point1.y);
-    //const p2 = gridToCanvas(CANVAS_SIZE, STEP_SIZE, point2.x, point2.y);
-    //const p3 = gridToCanvas(CANVAS_SIZE, STEP_SIZE, point3.x, point3.y);
-  
-    ctx.beginPath();
-    ctx.setLineDash([]);
-    ctx.strokeStyle = selectedColor;
-    ctx.lineWidth = 2;
-    console.log({selectedThreePointFunction})
-  
-    if (selectedThreePointFunction === "quadratic") {
-        console.log("Selected three point function is the quadratic or square root")
-      drawExponential(ctx, point1, point2, point3);
-    } else if (selectedThreePointFunction === "absolute_value") {
-      drawAbsolute(ctx, point1, point2, point3);
-    }
-    //cubic","quadratic","square_root","absolute_value
-  
-    ctx.stroke();
-  };
-  
-  // Exponential function fitting y = a * b^x
-  const drawExponential = (
-    ctx: CanvasRenderingContext2D,
-    p1: GraphPaperPoint,
-    p2: GraphPaperPoint,
-    p3: GraphPaperPoint
-  ) => {
-    const x1 = p1.x, y1 = p1.y;
-    const x2 = p2.x, y2 = p2.y;
-    const x3 = p3.x, y3 = p3.y;
-  
-    // Ensure all y-values are nonzero and have the same sign
-    if (y1 * y2 <= 0 || y1 * y3 <= 0) {
-      alert("Exponential function requires all y-values to have the same sign.");
-      return;
-    }
-  
-    // Solve for 'b' using logarithms
-    //const logY1 = Math.log(y1);
-    const logY2 = Math.log(y2);
-    const logY3 = Math.log(y3);
-  
-    const b = Math.exp((logY3 - logY2) / (x3 - x2));
-    const a = y1 / Math.pow(b, x1);
-  
-    // Define drawing range from x = -10 to x = 10
-    const steps = 500;
-    const startX = -10;
-    const endX = 10;
-    const stepSize = (endX - startX) / steps;
-  
-    ctx.beginPath();
-  
-    for (let i = 0; i <= steps; i++) {
-      const x = startX + i * stepSize;
-      const y = a * Math.pow(b, x);
-      const canvasPoint = gridToCanvas(CANVAS_SIZE, STEP_SIZE, x, y);
-      
-      if (i === 0) {
-        ctx.moveTo(canvasPoint.x, canvasPoint.y);
-      } else {
-        ctx.lineTo(canvasPoint.x, canvasPoint.y);
-      }
-    }
-  
-    ctx.stroke();
-  };
-  
-  // Absolute value function fitting y = a |x - h| + k
-  const drawAbsolute = (
-    ctx: CanvasRenderingContext2D,
-    p1: GraphPaperPoint,
-    p2: GraphPaperPoint,
-    p3: GraphPaperPoint
-  ) => {
-    // Find the vertex (h, k)
-    const [sortedP1, sortedP2] = [p1, p2, p3].sort((a, b) => a.x - b.x);
-    const h = sortedP2.x;
-    const k = sortedP2.y;
-  
-    // Solve for `a` using one of the other points
-    const a = (sortedP1.y - k) / Math.abs(sortedP1.x - h);
-  
-    // Define drawing range from x = -10 to x = 10
-    const steps = 500;
-    const startX = -10;
-    const endX = 10;
-    const stepSize = (endX - startX) / steps;
-  
-    ctx.beginPath();
-  
-    for (let i = 0; i <= steps; i++) {
-      const x = startX + i * stepSize;
-      const y = a * Math.abs(x - h) + k;
-      const canvasPoint = gridToCanvas(CANVAS_SIZE, STEP_SIZE, x, y);
-      
-      if (i === 0) {
-        ctx.moveTo(canvasPoint.x, canvasPoint.y);
-      } else {
-        ctx.lineTo(canvasPoint.x, canvasPoint.y);
-      }
-    }
-  
-    ctx.stroke();
-  };
-
-
-
   
   export const drawGrid = (canvas:HTMLCanvasElement) => {
 
@@ -414,140 +138,6 @@ export const drawTwoPointConnection = (ctx: CanvasRenderingContext2D, point1: Gr
   };
 
 
-export const drawShadedRegion = (ctx: CanvasRenderingContext2D, action: GraphPaperAction, shadeType: ShadeType) => {
-    if (!ctx) return;
-  
-    console.log(action)
-    ctx.beginPath();
-
- 
-  
-    console.log(action)
-    if (!action.points || action.points.length !== 2) {
-        console.warn('drawShadedRegion: Only handles two-point linear shading.');
-        return;
-      }
-    const { points } = action;
-    const [point1, point2] = points;
-    console.log("Points in canvasUtils")
-    console.log(points)
-   
-    //const p1Canvas = gridToCanvas(CANVAS_SIZE, STEP_SIZE, point1.x, point1.y);
-    //const p2Canvas = gridToCanvas(CANVAS_SIZE, STEP_SIZE, point2.x, point2.y);
-  
-    ctx.setLineDash([]);
-
-    // ctx save should save this and then multiply to make blue +red = purple
-    // but it messes everything up
-    ctx.save();
-    ctx.globalCompositeOperation = 'multiply'; // lighter or screen or multiply
-    ctx.strokeStyle =  point1.color || 'red';
-    ctx.fillStyle =  point1.color
-      ? hexToRgba(point1.color, 0.35) 
-      : 'rgba(255, 0, 0, 0.5)';
-  
-    const connectionType = action.connectionType || 'finite'; 
-    const functionType = action.functionType;
-  
-    if (functionType === 'linear') {
-  
-      const dx = point2.x - point1.x;
-      const dy = point2.y - point1.y;
-      if (dx === 0) {
-        console.warn('Vertical line shading not handled here.');
-        return;
-      }
-      const m = dy / dx;
-      const b = point1.y - m * point1.x;
-  
-      // 2. Decide the x-range to shade
-      let xMin = Math.min(point1.x, point2.x);
-      let xMax = Math.max(point1.x, point2.x);
-  
-      switch (connectionType) {
-        case 'continuous':
-          xMin = -RANGE;
-          xMax = RANGE;
-          break;
-        case 'semi_infinite':
-          // If p1 < p2 in x, we shade from xMin to RANGE. If p1 > p2, we shade from -RANGE to xMax.
-          if (point1.x < point2.x) {
-            xMin = point1.x;
-            xMax = RANGE;
-          } else {
-            xMin = -RANGE;
-            xMax = point1.x;
-          }
-          break;
-        case 'finite':
-        default:
-          // Already set to the min / max of the two points
-          break;
-      }
-
-      const steps = 200;
-      const stepSize = (xMax - xMin) / steps;
-  
-      ctx.beginPath();
-  
-      let currentX = xMin;
-      let currentY = m * currentX + b;
-  
-      const { x: startCanvasX, y: startCanvasY } = gridToCanvas(
-        CANVAS_SIZE,
-        STEP_SIZE,
-        currentX,
-        currentY
-      );
-      ctx.moveTo(startCanvasX, startCanvasY);
-  
-      for (let i = 1; i <= steps; i++) {
-        currentX = xMin + i * stepSize;
-        currentY = m * currentX + b;
-        const canvasCoords = gridToCanvas(
-          CANVAS_SIZE,
-          STEP_SIZE,
-          currentX,
-          currentY
-        );
-        ctx.lineTo(canvasCoords.x, canvasCoords.y);
-      }
-  
-      if (shadeType === 'above') {
-        // For 'above', we connect from (xMax, lineY) up to (xMax, +RANGE),
-        // then across to (xMin, +RANGE), then back down
-       // const xMaxCanvas = gridToCanvas(CANVAS_SIZE, STEP_SIZE, xMax, m*xMax + b);
-        const topRight = gridToCanvas(CANVAS_SIZE, STEP_SIZE, xMax, RANGE);
-        const topLeft = gridToCanvas(CANVAS_SIZE, STEP_SIZE, xMin, RANGE);
-  
-        ctx.lineTo(topRight.x, topRight.y);
-        ctx.lineTo(topLeft.x, topLeft.y);
-        const xMinCanvas = gridToCanvas(CANVAS_SIZE, STEP_SIZE, xMin, m*xMin + b);
-        ctx.lineTo(xMinCanvas.x, xMinCanvas.y);
-        ctx.closePath();
-        ctx.fill();
-      } else {
-        // shadeType === 'below'
-        // For 'below', we connect from (xMax, lineY) down to (xMax, -RANGE),
-        // then across to (xMin, -RANGE), then back up
-       // const xMaxCanvas = gridToCanvas(CANVAS_SIZE, STEP_SIZE, xMax, m*xMax + b);
-        const bottomRight = gridToCanvas(CANVAS_SIZE, STEP_SIZE, xMax, -RANGE);
-        const bottomLeft = gridToCanvas(CANVAS_SIZE, STEP_SIZE, xMin, -RANGE);
-  
-        ctx.lineTo(bottomRight.x, bottomRight.y);
-        ctx.lineTo(bottomLeft.x, bottomLeft.y);
-        // up to line at xMin
-        const xMinCanvas = gridToCanvas(CANVAS_SIZE, STEP_SIZE, xMin, m*xMin + b);
-        ctx.lineTo(xMinCanvas.x, xMinCanvas.y);
-        ctx.closePath();
-        ctx.fill();
-      }
-    } 
-    ctx.restore();
-  };
-  
-
-
   export function redrawAll(ctx: CanvasRenderingContext2D, actions: GraphPaperAction[], points: GraphPaperPoint[], selectedPoints: GraphPaperPoint[]) {
    // Clear canvas or drawGrid
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
@@ -563,7 +153,7 @@ export const drawShadedRegion = (ctx: CanvasRenderingContext2D, action: GraphPap
         if (!action.functionType) return;
         switch (action.actionType) {
             case "connect_2_points":
-                drawTwoPointConnection(ctx, action.points[0], action.points[1], action.connectionType, action.style.lineStyle, action.functionType as TwoPointFunctionType, action.style?.color || action.points[0].color || 'red');
+                drawTwoPointConnection(ctx, action.points[0], action.points[1], action.connectionType, action.style.lineStyle, action.functionType as TwoPointFunctionType);
                 break;
             case "connect_3_points":
                 drawThreePointConnection(ctx, action.points[0], action.points[1], action.points[2], action.connectionType, action.style.lineStyle, action.functionType as ThreePointFunctionType, action.style?.color || action.points[0].color || 'red');
@@ -580,7 +170,6 @@ export const drawShadedRegion = (ctx: CanvasRenderingContext2D, action: GraphPap
     actions
       .filter(a => a.actionType === "shade_region")
       .forEach(a => {
-        // Inside drawShadedRegion, do ctx.save(); globalCompositeOp = 'screen'; fill(); ctx.restore();
         drawShadedRegion(ctx, a, a.ShadeType || 'above');
       });
   
@@ -590,3 +179,7 @@ export const drawShadedRegion = (ctx: CanvasRenderingContext2D, action: GraphPap
     // 5) Draw selected points
     selectedPoints.forEach(p => drawSelectedPoint(ctx, p));
   }
+
+
+export { drawShadedRegion };
+

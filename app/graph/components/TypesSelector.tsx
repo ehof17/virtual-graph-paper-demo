@@ -14,8 +14,8 @@ const availableOptions = {
   connectPointsType: ["continuous", "semi_infinite", "finite"] as ConnectPointsType[],
   lineStyle: ["solid", "dashed", "dotted"] as LineStyle[],
   // todo: add sqrt here
-  twoPointFunction: ["linear", "exponential"] as TwoPointFunctionType[],
-  threePointFunction: ["quadratic",  "absolute_value"] as ThreePointFunctionType[],
+  twoPointFunction: ["linear"] as TwoPointFunctionType[],
+  threePointFunction: ["quadratic",  "absolute_value", "square_root"] as ThreePointFunctionType[],
   fourPointFunction: ["cubic"] as FourPointFunctionType[],
 
   shadeStyle: ["above", "below"] as ShadeType[],

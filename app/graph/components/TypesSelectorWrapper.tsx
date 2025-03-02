@@ -22,6 +22,7 @@ const TypesSelectorWrapper: React.FC<TypesSelectorOuterProps> = ({ selectedActio
       </>}
       {selectedAction === "connect_3_points" && <>
       <TypesSelector type="three_function_style" />
+      <TypesSelector type="connection_type" />
       <TypesSelector type="line_style" />
       </>
       }
