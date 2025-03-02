@@ -45,7 +45,6 @@ export const drawTwoPointConnection = (ctx: CanvasRenderingContext2D, point1: Gr
           default:
             break;
         }
-      // todo: make this work with the connection type
       ctx.stroke();
       return {M, B, type:"linear", valid:true};
   };
