@@ -1,8 +1,9 @@
 import { CANVAS_SIZE, RANGE, STEP_SIZE } from "./constants";
 import { drawShadedRegion } from "./shadedRegion";
+import { drawFourPointConnection } from "./fourPointCanvas";
 import { drawThreePointConnection } from "./threePointCanvas";
 import { drawTwoPointConnection } from "./twoPointCanvas";
-import { GraphPaperPoint,  TwoPointFunctionType, ThreePointFunctionType, GraphPaperAction } from "./types/graphPaper";
+import { GraphPaperPoint,  TwoPointFunctionType, ThreePointFunctionType, FourPointFunctionType, GraphPaperAction } from "./types/graphPaper";
 import { gridToCanvas } from "./utils";
 
  // old function needs the actual canvas coordinates
@@ -159,7 +160,7 @@ export const drawSelectedPoint = (ctx: CanvasRenderingContext2D, point: GraphPap
                 drawThreePointConnection(ctx, action.points[0], action.points[1], action.points[2], action.connectionType, action.style.lineStyle, action.functionType as ThreePointFunctionType, action.style?.color || action.points[0].color || 'red');
                 break;
             case "connect_4_points":
-                // drawFourPointConnection(...);
+                drawFourPointConnection(ctx, action.points[0], action.points[1], action.points[2], action.points[3], action.connectionType, action.style.lineStyle, action.functionType as FourPointFunctionType, action.style?.color || action.points[0].color || 'red');
                 break;
        
       }
