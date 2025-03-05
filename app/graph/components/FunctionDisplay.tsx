@@ -26,6 +26,9 @@ const FunctionDisplay: React.FC<FunctionDisplay> = ({ params }) => {
         case "linear":
             func = `f(x) = ${params.M}x + ${params.B}`;
             break;
+        case "cubic":
+            func = `f(x) = ${params.A}x^3 + ${params.B}x^2 + ${params.C}x + ${params.D}`;
+            break;
         default:
             func = "Invalid function type";
     }

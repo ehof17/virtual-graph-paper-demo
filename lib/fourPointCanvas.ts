@@ -1,7 +1,6 @@
-import { CANVAS_SIZE, RANGE, STEP_SIZE } from "./constants";
+import { RANGE } from "./constants";
 import { computeFourPointCubicParams, drawCubicCurve } from "./cubicCanvas";
 import { ConnectPointsType, GraphPaperPoint, LineStyle, FourPointFunctionType, FunctionParams } from "./types/graphPaper";
-import { gridToCanvas } from "./utils";
 
 export const drawFourPointConnection = (
     ctx: CanvasRenderingContext2D,
