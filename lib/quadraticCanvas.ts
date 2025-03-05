@@ -110,9 +110,13 @@ export function drawQuadraticCurve(
       const coords = gridToCanvas(CANVAS_SIZE, STEP_SIZE, currentX, currentY);
       ctx.lineTo(coords.x, coords.y);
     }
+    // draw the curve
+    ctx.stroke();
   
     // Decide if we shade "above" or "below"
     if (shadeType === 'above') {
+      // This doesn't work and the line is not drawdn
+
       // Connect from the last curve point to top boundary,
       // then over to top boundary at xMin,
       // and back down to the start curve point

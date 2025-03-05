@@ -29,7 +29,35 @@ export const drawShadedRegion = (ctx: CanvasRenderingContext2D, action: GraphPap
     // ctx save should save this and then multiply to make blue +red = purple
     // but it messes everything up
     ctx.save();
-    ctx.globalCompositeOperation = 'multiply'; // lighter or screen or multiply
+    // options here
+    //"source-over",
+    //"source-in",
+    //"source-out",
+    //"source-atop",
+    //"destination-over",
+    //"destination-in",
+    //"destination-out",
+    //"destination-atop",
+    //"lighter",
+    //"copy",
+    //"xor",
+    //"multiply",
+    //"screen",
+    //"overlay",
+    //"darken",
+    //"lighten",
+    //"color-dodge",
+    //"color-burn",
+    //"hard-light",
+    //"soft-light",
+    //"difference",
+    //"exclusion",
+    //"hue",
+    //"saturation",
+    //"color",
+    //"luminosity",
+
+    ctx.globalCompositeOperation = 'multiply'; 
     ctx.strokeStyle =  point1.color || 'red';
     ctx.fillStyle =  point1.color
       ? hexToRgba(point1.color, 0.35) 
