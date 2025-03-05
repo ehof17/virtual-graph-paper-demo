@@ -9,6 +9,7 @@ import TypesSelectorWrapper from './TypesSelectorWrapper';
 import PlotPointInput from './PlotPointInput';
 import ColorSelector from './ColorSelector';
 import { drawGrid, drawPoint, drawSelectedPoint, redrawAll } from '@/lib/canvasUtils';
+import { drawFourPointConnection } from '@/lib/fourPointCanvas';
 import { drawThreePointConnection } from '@/lib/threePointCanvas';
 import { CANVAS_SIZE, RANGE, STEP_SIZE } from '@/lib/constants';
 import { drawTwoPointConnection } from '@/lib/twoPointCanvas';
@@ -18,7 +19,7 @@ import FunctionDisplay from './FunctionDisplay';
 
 
 const GraphPaper: React.FC = () => {
-  const { actions, addAction, removeAction, addPoint, selectedPointStyle, points, addSelectedPoint, removeSelectedPoint, selectedPoints, selectedConnectPointsType, selectedLineStyle, selectedTwoPointFunction, selectedThreePointFunction, selectedColor, selectedShadeType} = useGraphPaper();
+  const { actions, addAction, removeAction, addPoint, selectedPointStyle, points, addSelectedPoint, removeSelectedPoint, selectedPoints, selectedConnectPointsType, selectedLineStyle, selectedTwoPointFunction, selectedThreePointFunction, selectedFourPointFunction, selectedColor, selectedShadeType} = useGraphPaper();
   const [selectedAction, setSelectedAction] = useState<ActionType | null>(null);
   const [xInput, setXInput] = useState<string>("");
   const [yInput, setYInput] = useState<string>("");
@@ -235,6 +236,78 @@ const handleConnectThreePointsClick = (): GraphPaperAction | null => {
   return null;
 }
 
+const handleConnectFourPointsClick = (): GraphPaperAction | null => {
+  if (selectedPoints.length === 4) {
+    const [point1, point2, point3, point4] = selectedPoints;
+    let res: FunctionParams | null;
+
+    const newAction: GraphPaperAction = {
+      actionType: "connect_4_points",
+      points: [point1, point2, point3, point4],
+      style: { lineStyle: selectedLineStyle },
+      functionType: selectedFourPointFunction, // Assuming you have this state
+      timestamp: new Date().toISOString(),
+    };
+
+    const existingConnectionIndex = actions.findIndex(action =>
+      action.actionType === "connect_4_points" &&
+      Array.isArray(action.points) &&
+      action.points.length === 4 &&
+      action.points.some(p => p.id === point1.id) &&
+      action.points.some(p => p.id === point2.id) &&
+      action.points.some(p => p.id === point3.id) &&
+      action.points.some(p => p.id === point4.id)
+    );
+
+    const canvas = canvasRef.current;
+    if (!canvas) return null;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+
+    if (existingConnectionIndex !== -1) {
+      const existingConnection = actions[existingConnectionIndex];
+      const stylesChanged = (
+        existingConnection.style?.lineStyle !== selectedLineStyle ||
+        existingConnection.functionType !== selectedFourPointFunction ||
+        existingConnection.connectionType !== selectedConnectPointsType
+      );
+
+      if (!stylesChanged) {
+        alert("This connection already exists with the same style!");
+        return null;
+      } else {
+        alert("The styles have changed");
+        removeAction(existingConnection);
+        clearConnection(existingConnection);
+        res = drawFourPointConnection(ctx, point1, point2, point3, point4, selectedConnectPointsType, selectedLineStyle, selectedFourPointFunction, selectedColor);
+        if (res?.valid) {
+          setLastGraphedFunc(res);
+          newAction.success = true;
+        } else {
+          setErrorMessage(res?.message || "Invalid connection");
+          setShowError(true);
+          newAction.success = false;
+        }
+      }
+    } else {
+      res = drawFourPointConnection(ctx, point1, point2, point3, point4, selectedConnectPointsType, selectedLineStyle, selectedFourPointFunction, selectedColor);
+      if (res?.valid) {
+        setLastGraphedFunc(res);
+        newAction.success = true;
+      } else {
+        setErrorMessage(res?.message || "Invalid connection");
+        setShowError(true);
+        newAction.success = false;
+      }
+    }
+
+    return newAction as GraphPaperAction;
+  } else {
+    alert("Please select exactly 4 points to connect.");
+  }
+  return null;
+};
 
 const onlyCareAboutSingleConnect = (): GraphPaperAction | null => {
 
@@ -412,6 +485,10 @@ const handleShadeRegionClick = (): GraphPaperAction | null => {
 
       case "connect_3_points":
         newAction = handleConnectThreePointsClick();
+        break;
+
+      case "connect_4_points":
+        newAction = handleConnectFourPointsClick();
         break;
 
       case "shade_region":

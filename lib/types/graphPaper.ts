@@ -54,7 +54,7 @@ export interface GraphPaperAction {
   points?: GraphPaperPoint[];
   style?: ActionStyle;
   connectionType?: ConnectPointsType;
-  functionType?: TwoPointFunctionType | ThreePointFunctionType;
+  functionType?: TwoPointFunctionType | ThreePointFunctionType | FourPointFunctionType;
   ShadeType?: ShadeType;
   success?: boolean;
   timestamp: string;
@@ -70,6 +70,7 @@ export interface FunctionParams {
   A?: number;
   B?: number;
   C?: number;
+  D?: number;
   H?: number;
   K?: number;
   M?: number;
