@@ -1,4 +1,6 @@
 import { CANVAS_SIZE, RANGE, STEP_SIZE } from "./constants";
+import { computeQuadratic3Points, drawShadedQuadraticRegion } from "./quadraticCanvas";
+import { drawShadedLinearRegion } from "./twoPointCanvas";
 import { GraphPaperAction, ShadeType } from "./types/graphPaper";
 import { gridToCanvas, hexToRgba } from "./utils";
 
@@ -7,14 +9,17 @@ export const drawShadedRegion = (ctx: CanvasRenderingContext2D, action: GraphPap
   
     ctx.beginPath();
 
-    if (!action.points || action.points.length !== 2) {
+    if (!action.points || action.points.length < 2) {
         console.warn('drawShadedRegion: Only handles two-point linear shading.');
         return;
       }
     const { points } = action;
     const [point1, point2] = points;
-    console.log("Points in canvasUtils")
-    console.log(points)
+    let point3;
+    if (points.length === 3) {
+      point3 = points[2];
+    }
+      
    
     //const p1Canvas = gridToCanvas(CANVAS_SIZE, STEP_SIZE, point1.x, point1.y);
     //const p2Canvas = gridToCanvas(CANVAS_SIZE, STEP_SIZE, point2.x, point2.y);
@@ -32,101 +37,68 @@ export const drawShadedRegion = (ctx: CanvasRenderingContext2D, action: GraphPap
   
     const connectionType = action.connectionType || 'finite'; 
     const functionType = action.functionType;
-  
-    if (functionType === 'linear') {
-  
-      const dx = point2.x - point1.x;
-      const dy = point2.y - point1.y;
-      if (dx === 0) {
-        console.warn('Vertical line shading not handled here.');
-        return;
-      }
-      const m = dy / dx;
-      const b = point1.y - m * point1.x;
-  
-      // 2. Decide the x-range to shade
-      let xMin = Math.min(point1.x, point2.x);
-      let xMax = Math.max(point1.x, point2.x);
-  
-      switch (connectionType) {
-        case 'continuous':
-          xMin = -RANGE;
-          xMax = RANGE;
-          break;
-        case 'semi_infinite':
-          // If p1 < p2 in x, we shade from xMin to RANGE. If p1 > p2, we shade from -RANGE to xMax.
-          if (point1.x < point2.x) {
-            xMin = point1.x;
-            xMax = RANGE;
-          } else {
-            xMin = -RANGE;
-            xMax = point1.x;
-          }
-          break;
-        case 'finite':
-        default:
-          // Already set to the min / max of the two points
-          break;
-      }
+    // 2. Decide the x-range to shade
+    let xMin = Math.min(point1.x, point2.x);
+    let xMax = Math.max(point1.x, point2.x);
 
-      const steps = 200;
-      const stepSize = (xMax - xMin) / steps;
+    switch (connectionType) {
+      case 'continuous':
+        xMin = -RANGE;
+        xMax = RANGE;
+        break;
+      case 'semi_infinite':
+        // If p1 < p2 in x, we shade from xMin to RANGE. If p1 > p2, we shade from -RANGE to xMax.
+        if (point1.x < point2.x) {
+          xMin = point1.x;
+          xMax = RANGE;
+        } else {
+          xMin = -RANGE;
+          xMax = point1.x;
+        }
+        break;
+      case 'finite':
+      default:
+        // Already set to the min / max of the two points
+        break;
+    }
+
+
+    let params;
+    switch (functionType) {
+      case 'linear':
+        // Linear shading handled below
+        const dx = point2.x - point1.x;
+        const dy = point2.y - point1.y;
+        if (dx === 0) {
+          console.warn('Vertical line shading not handled here.');
+          return;
+        }
+        const m = dy / dx;
+        const b = point1.y - m * point1.x;
   
-      ctx.beginPath();
+        drawShadedLinearRegion(ctx, m, b, xMin, xMax, shadeType);
+
+        break;
+      case 'quadratic':
+        // Quadratic shading handled in quadraticCanvas
+        if (point3){
+          params = computeQuadratic3Points(point1.x, point1.y, point2.x, point2.y, point3.x, point3.y);
+          const { A, B, C } = params;
+          if (!params.valid || A === undefined || B === undefined || C === undefined) {
+            console.warn("Quadratic solve failed:", params.message);
+            return params;
+          }
+          
+          drawShadedQuadraticRegion(ctx, A, B, C, xMin, xMax, shadeType);
+
+        }
   
-      let currentX = xMin;
-      let currentY = m * currentX + b;
-  
-      const { x: startCanvasX, y: startCanvasY } = gridToCanvas(
-        CANVAS_SIZE,
-        STEP_SIZE,
-        currentX,
-        currentY
-      );
-      ctx.moveTo(startCanvasX, startCanvasY);
-  
-      for (let i = 1; i <= steps; i++) {
-        currentX = xMin + i * stepSize;
-        currentY = m * currentX + b;
-        const canvasCoords = gridToCanvas(
-          CANVAS_SIZE,
-          STEP_SIZE,
-          currentX,
-          currentY
-        );
-        ctx.lineTo(canvasCoords.x, canvasCoords.y);
+        // drawShadedQuadraticRegion(ctx, point1, point2, point3, shadeType);
+        break;
       }
-  
-      if (shadeType === 'above') {
-        // For 'above', we connect from (xMax, lineY) up to (xMax, +RANGE),
-        // then across to (xMin, +RANGE), then back down
-       // const xMaxCanvas = gridToCanvas(CANVAS_SIZE, STEP_SIZE, xMax, m*xMax + b);
-        const topRight = gridToCanvas(CANVAS_SIZE, STEP_SIZE, xMax, RANGE);
-        const topLeft = gridToCanvas(CANVAS_SIZE, STEP_SIZE, xMin, RANGE);
-  
-        ctx.lineTo(topRight.x, topRight.y);
-        ctx.lineTo(topLeft.x, topLeft.y);
-        const xMinCanvas = gridToCanvas(CANVAS_SIZE, STEP_SIZE, xMin, m*xMin + b);
-        ctx.lineTo(xMinCanvas.x, xMinCanvas.y);
-        ctx.closePath();
-        ctx.fill();
-      } else {
-        // shadeType === 'below'
-        // For 'below', we connect from (xMax, lineY) down to (xMax, -RANGE),
-        // then across to (xMin, -RANGE), then back up
-       // const xMaxCanvas = gridToCanvas(CANVAS_SIZE, STEP_SIZE, xMax, m*xMax + b);
-        const bottomRight = gridToCanvas(CANVAS_SIZE, STEP_SIZE, xMax, -RANGE);
-        const bottomLeft = gridToCanvas(CANVAS_SIZE, STEP_SIZE, xMin, -RANGE);
-  
-        ctx.lineTo(bottomRight.x, bottomRight.y);
-        ctx.lineTo(bottomLeft.x, bottomLeft.y);
-        // up to line at xMin
-        const xMinCanvas = gridToCanvas(CANVAS_SIZE, STEP_SIZE, xMin, m*xMin + b);
-        ctx.lineTo(xMinCanvas.x, xMinCanvas.y);
-        ctx.closePath();
-        ctx.fill();
-      }
-    } 
+   
+
+     
     ctx.restore();
   };
   

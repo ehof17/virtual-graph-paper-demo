@@ -19,7 +19,6 @@ export type ConnectPointsType =
 
 export type LineStyle = "solid" | "dashed" | "dotted";
 
-// todo: add sqrt here
 export type FunctionType  = TwoPointFunctionType | ThreePointFunctionType | FourPointFunctionType;
 export type TwoPointFunctionType= "linear";
 export type ThreePointFunctionType = "quadratic" |  "absolute_value" | "square_root";
