@@ -138,7 +138,10 @@ export const drawSelectedPoint = (ctx: CanvasRenderingContext2D, point: GraphPap
 
   };
 
-
+  export function redrawAllExcept(ctx: CanvasRenderingContext2D, actions: GraphPaperAction[], points: GraphPaperPoint[], selectedPoints: GraphPaperPoint[], actionToIgnore: GraphPaperAction) {
+    const actionsToDraw = actions.filter((a) => a !== actionToIgnore);
+    redrawAll(ctx, actionsToDraw, points, selectedPoints);
+  }
   export function redrawAll(ctx: CanvasRenderingContext2D, actions: GraphPaperAction[], points: GraphPaperPoint[], selectedPoints: GraphPaperPoint[]) {
    // Clear canvas or drawGrid
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
@@ -147,11 +150,26 @@ export const drawSelectedPoint = (ctx: CanvasRenderingContext2D, point: GraphPap
     // 2) Draw all connections (lines, curves, etc.)
     actions.forEach((action) => {
       if (action.actionType.startsWith("connect")) {
-        if (!action.points || action.points.length < 2) return;
-        if (!action.connectionType) return;
-        if (!action.functionType) return;
-        if (!action.style?.lineStyle) return;
-        if (!action.functionType) return;
+        if (!action.points || action.points.length < 2) {
+          console.error("Invalid connect_x_points action 1 : ", action);
+          return;
+        }
+        if (!action.connectionType){
+          console.error("Invalid connect_x_points action 2 : ", action);
+          return;
+        }
+        if (!action.functionType) {
+          console.error("Invalid connect_x_points action 3 : ", action);
+          return;
+        }
+        if (!action.style?.lineStyle) {
+          console.error("Invalid connect_x_points action 4 : ", action);
+          return;
+        }
+        if (!action.functionType){
+          console.error("Invalid connect_x_points action 5 : ", action);
+          return;
+        }
         switch (action.actionType) {
             case "connect_2_points":
                 drawTwoPointConnection(ctx, action.points[0], action.points[1], action.connectionType, action.style.lineStyle, action.functionType as TwoPointFunctionType);
@@ -165,14 +183,33 @@ export const drawSelectedPoint = (ctx: CanvasRenderingContext2D, point: GraphPap
        
       }
     }
-    });
+
+    else if (action.actionType === "shade_region") {
+      if (!action.points || action.points.length < 2) {
+        console.error("Invalid shade_region action: ", action);
+        return;
+      }
+      let connectionAction;
+      if (action.points.length === 2) {
+        connectionAction = actions.find((a) => a.actionType === "connect_2_points" && a.points && a.points.length === 2 && a.points[0].id === action.points![0].id && a.points[1].id === action.points![1].id);
+      }
+      else if (action.points.length === 3) {
+        connectionAction = actions.find((a) => a.actionType === "connect_3_points" && a.points && a.points.length === 3 && a.points[0].id === action.points![0].id && a.points[1].id === action.points![1].id && a.points[2].id === action.points![2].id);
+      }
+
+      if (connectionAction){
+        drawShadedRegion(ctx, connectionAction, action.ShadeType || 'above');
+      }
+
+
+
+    }
+    }
+  );
+
   
     // 3) Draw shading (if any "shade_region" actions exist)
-    actions
-      .filter(a => a.actionType === "shade_region")
-      .forEach(a => {
-        drawShadedRegion(ctx, a, a.ShadeType || 'above');
-      });
+    
   
     // 4) Draw all points
     points.forEach(p => drawPoint(ctx, p));
@@ -182,5 +219,5 @@ export const drawSelectedPoint = (ctx: CanvasRenderingContext2D, point: GraphPap
   }
 
 
-export { drawShadedRegion };
+
 

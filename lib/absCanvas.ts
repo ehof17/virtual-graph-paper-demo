@@ -1,5 +1,5 @@
-import { CANVAS_SIZE, STEP_SIZE } from "./constants";
-import { GraphPaperPoint, FunctionParams } from "./types/graphPaper";
+import { CANVAS_SIZE, RANGE, STEP_SIZE } from "./constants";
+import { GraphPaperPoint, FunctionParams, ShadeType } from "./types/graphPaper";
 import { gridToCanvas } from "./utils";
 
 export function computeThreePointAbsParams(
@@ -103,3 +103,52 @@ export function computeThreePointAbsParams(
     ctx.lineWidth = 2;
     ctx.stroke();
   }
+
+  export function drawShadedThreePointAbs(
+    ctx: CanvasRenderingContext2D,
+    a: number,
+    h: number,
+    k: number,
+    xMin: number,
+    xMax: number,
+    color: string,
+    shadeType: ShadeType
+) {
+    const steps = 300;
+    const dx = (xMax - xMin) / steps;
+  
+    ctx.beginPath();
+  
+    let currentX = xMin;
+    let currentY = a * Math.abs(currentX - h) + k;
+    const startCoords = gridToCanvas(CANVAS_SIZE, STEP_SIZE, currentX, currentY);
+    ctx.moveTo(startCoords.x, startCoords.y);
+  
+    for (let i = 1; i <= steps; i++) {
+        currentX = xMin + i * dx;
+        currentY = a * Math.abs(currentX - h) + k;
+        const coords = gridToCanvas(CANVAS_SIZE, STEP_SIZE, currentX, currentY);
+        ctx.lineTo(coords.x, coords.y);
+    }
+
+    if (shadeType === "above") {
+        const topRight = gridToCanvas(CANVAS_SIZE, STEP_SIZE, xMax, RANGE);
+        const topLeft = gridToCanvas(CANVAS_SIZE, STEP_SIZE, xMin, RANGE);
+        ctx.lineTo(topRight.x, topRight.y);
+        ctx.lineTo(topLeft.x, topLeft.y);
+    } else {
+        const bottomRight = gridToCanvas(CANVAS_SIZE, STEP_SIZE, xMax, -RANGE);
+        const bottomLeft = gridToCanvas(CANVAS_SIZE, STEP_SIZE, xMin, -RANGE);
+        ctx.lineTo(bottomRight.x, bottomRight.y);
+        ctx.lineTo(bottomLeft.x, bottomLeft.y);
+    }
+
+    ctx.closePath();
+    ctx.fillStyle = color;
+    ctx.globalAlpha = 0.3; 
+    ctx.fill();
+
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+}

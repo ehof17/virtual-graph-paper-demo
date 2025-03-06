@@ -1,3 +1,4 @@
+import { computeThreePointAbsParams, drawShadedThreePointAbs } from "./absCanvas";
 import { CANVAS_SIZE, RANGE, STEP_SIZE } from "./constants";
 import { computeQuadratic3Points, drawShadedQuadraticRegion } from "./quadraticCanvas";
 import { drawShadedLinearRegion } from "./twoPointCanvas";
@@ -68,6 +69,10 @@ export const drawShadedRegion = (ctx: CanvasRenderingContext2D, action: GraphPap
     // 2. Decide the x-range to shade
     let xMin = Math.min(point1.x, point2.x);
     let xMax = Math.max(point1.x, point2.x);
+    if (point3) {
+      xMin = Math.min(xMin, point3.x);
+      xMax = Math.max(xMax, point3.x);
+    }
 
     switch (connectionType) {
       case 'continuous':
@@ -123,7 +128,26 @@ export const drawShadedRegion = (ctx: CanvasRenderingContext2D, action: GraphPap
   
         // drawShadedQuadraticRegion(ctx, point1, point2, point3, shadeType);
         break;
+
+      case 'absolute_value':
+        if (point3){
+        params = computeThreePointAbsParams(point1, point2, point3);
+        const {A, H, K} = params;
+        if (!params.valid || A === undefined || H === undefined || K === undefined) {
+            console.warn("Absolute Value solve failed:", params.message);
+            return params;
+        }
+        drawShadedThreePointAbs(ctx, A, H, K, xMin, xMax, point1.color || 'red', shadeType);
       }
+        break;
+      case 'square_root':
+        alert('Square root shading not implemented yet.');
+        break;
+      case 'cubic':
+        alert('Cubic shading not implemented yet.');
+        break;
+      }
+
    
 
      
