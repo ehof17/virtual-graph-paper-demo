@@ -1,6 +1,6 @@
-import { CANVAS_SIZE, STEP_SIZE } from "./constants";
-import { FunctionParams } from "./types/graphPaper";
-import { gridToCanvas } from "./utils";
+import { CANVAS_SIZE, RANGE, STEP_SIZE } from "./constants";
+import { FunctionParams, ShadeType } from "./types/graphPaper";
+import { gridToCanvas, hexToRgba } from "./utils";
 
 
   
@@ -139,5 +139,124 @@ export function computeThreePointSqrtParams(
     ctx.stroke();
   }
 
-
+  export function drawShadedSqrtCurve(
+    ctx: CanvasRenderingContext2D,
+    params: FunctionParams,
+    xStart: number,
+    xEnd: number,
+    color: string,
+    shadeType: ShadeType
+  ) {
+    const { A, B, C } = params;
   
+    // Basic checks
+    if (!ctx || !A && A !== 0 || !B && B !== 0 || !C && C !== 0) {
+      console.warn("drawShadedSqrtCurve: invalid or incomplete params", params);
+      return;
+    }
+  
+    // We do N steps to draw the curve
+    const steps = 300;
+    const dx = (xEnd - xStart) / steps;
+  
+    // Start by finding the first valid domain portion: x + B >= 0
+    ctx.beginPath();
+  
+    let currentX = xStart;
+    let domainX = currentX + B;
+    while (domainX < 0 && currentX <= xEnd) {
+      currentX += dx;
+      domainX = currentX + B;
+    }
+  
+    // If we've gone past xEnd, no valid domain
+    if (currentX > xEnd) {
+      console.warn("No valid domain portion found to draw the sqrt curve.");
+      return;
+    }
+  
+    // Evaluate function at first domain point
+    let currentY = A * Math.sqrt(domainX) + C;
+    let { x: canvasX, y: canvasY } = gridToCanvas(CANVAS_SIZE, STEP_SIZE, currentX, currentY);
+    ctx.moveTo(canvasX, canvasY);
+  
+    // Draw the function curve
+    for (let i = 1; i <= steps; i++) {
+      const testX = xStart + i * dx;
+      if (testX > xEnd) break;
+  
+      const domainTestX = testX + B;
+      if (domainTestX < 0) {
+        // skip negative domain portion
+        continue;
+      }
+  
+      const testY = A * Math.sqrt(domainTestX) + C;
+      const coords = gridToCanvas(CANVAS_SIZE, STEP_SIZE, testX, testY);
+      ctx.lineTo(coords.x, coords.y);
+  
+      // Update currentX/currentY for shading steps
+      currentX = testX;
+      currentY = testY;
+      canvasX = coords.x;
+      canvasY = coords.y;
+    }
+  
+    // At this point, we have a path from (first valid X) to (last valid X)
+    // Decide how to shade
+    if (shadeType === "above") {
+      // line up to (xMax, +RANGE), across to (xMin, +RANGE), back to start
+      const topRight = gridToCanvas(CANVAS_SIZE, STEP_SIZE, currentX, RANGE);
+      ctx.lineTo(topRight.x, topRight.y);
+  
+      const topLeft = gridToCanvas(CANVAS_SIZE, STEP_SIZE, xStart, RANGE);
+      ctx.lineTo(topLeft.x, topLeft.y);
+  
+  
+    } else {
+      // shadeType === "below"
+      // line down to (xMax, -RANGE), across to (xMin, -RANGE), back up
+      const bottomRight = gridToCanvas(CANVAS_SIZE, STEP_SIZE, currentX, -RANGE);
+      ctx.lineTo(bottomRight.x, bottomRight.y);
+  
+      const bottomLeft = gridToCanvas(CANVAS_SIZE, STEP_SIZE, xStart, -RANGE);
+      ctx.lineTo(bottomLeft.x, bottomLeft.y);
+    }
+  
+    ctx.closePath();
+  
+    // Fill the region
+    ctx.save();
+    ctx.globalCompositeOperation = 'multiply';  
+    ctx.fillStyle = hexToRgba(color, 0.35);     
+    ctx.fill();
+    ctx.restore();
+  
+    
+    ctx.beginPath();
+    currentX = xStart;
+    domainX = currentX + B;
+    while (domainX < 0 && currentX <= xEnd) {
+      currentX += dx;
+      domainX = currentX + B;
+    }
+    if (currentX <= xEnd) {
+      currentY = A * Math.sqrt(domainX) + C;
+      let cCoords = gridToCanvas(CANVAS_SIZE, STEP_SIZE, currentX, currentY);
+      ctx.moveTo(cCoords.x, cCoords.y);
+  
+      for (let i = 1; i <= steps; i++) {
+        const tX = xStart + i * dx;
+        if (tX > xEnd) break;
+        const dX = tX + B;
+        if (dX < 0) continue;
+  
+        const tY = A * Math.sqrt(dX) + C;
+        cCoords = gridToCanvas(CANVAS_SIZE, STEP_SIZE, tX, tY);
+        ctx.lineTo(cCoords.x, cCoords.y);
+      }
+    }
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }

@@ -1,6 +1,7 @@
 import { computeThreePointAbsParams, drawShadedThreePointAbs } from "./absCanvas";
 import { CANVAS_SIZE, RANGE, STEP_SIZE } from "./constants";
 import { computeQuadratic3Points, drawShadedQuadraticRegion } from "./quadraticCanvas";
+import { computeThreePointSqrtParams, drawShadedSqrtCurve } from "./sqrtCanvas";
 import { drawShadedLinearRegion } from "./twoPointCanvas";
 import { GraphPaperAction, ShadeType } from "./types/graphPaper";
 import { gridToCanvas, hexToRgba } from "./utils";
@@ -90,6 +91,7 @@ export const drawShadedRegion = (ctx: CanvasRenderingContext2D, action: GraphPap
         }
         break;
       case 'finite':
+        
       default:
         // Already set to the min / max of the two points
         break;
@@ -141,7 +143,12 @@ export const drawShadedRegion = (ctx: CanvasRenderingContext2D, action: GraphPap
       }
         break;
       case 'square_root':
-        alert('Square root shading not implemented yet.');
+        xMin = Math.max(xMin, 0);
+        if (point3){
+          params = computeThreePointSqrtParams(point1.x, point1.y, point2.x, point2.y, point3.x, point3.y);
+          drawShadedSqrtCurve(ctx, params, xMin, xMax,  point1.color || 'red', shadeType);
+        }
+       
         break;
       case 'cubic':
         alert('Cubic shading not implemented yet.');
