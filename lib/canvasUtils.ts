@@ -140,6 +140,7 @@ export const drawSelectedPoint = (ctx: CanvasRenderingContext2D, point: GraphPap
 
   export function redrawAllExcept(ctx: CanvasRenderingContext2D, actions: GraphPaperAction[], points: GraphPaperPoint[], selectedPoints: GraphPaperPoint[], actionToIgnore: GraphPaperAction) {
     const actionsToDraw = actions.filter((a) => a !== actionToIgnore);
+    console.log(actionsToDraw);
     redrawAll(ctx, actionsToDraw, points, selectedPoints);
   }
   export function redrawAll(ctx: CanvasRenderingContext2D, actions: GraphPaperAction[], points: GraphPaperPoint[], selectedPoints: GraphPaperPoint[]) {
@@ -184,6 +185,8 @@ export const drawSelectedPoint = (ctx: CanvasRenderingContext2D, point: GraphPap
       }
     }
 
+
+    // Shade region needs a connect action
     else if (action.actionType === "shade_region") {
       if (!action.points || action.points.length < 2) {
         console.error("Invalid shade_region action: ", action);
@@ -206,10 +209,6 @@ export const drawSelectedPoint = (ctx: CanvasRenderingContext2D, point: GraphPap
     }
     }
   );
-
-  
-    // 3) Draw shading (if any "shade_region" actions exist)
-    
   
     // 4) Draw all points
     points.forEach(p => drawPoint(ctx, p));

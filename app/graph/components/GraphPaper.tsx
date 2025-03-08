@@ -94,88 +94,72 @@ const handleSelectPointsCanvasClick = (x: number, y: number) => {
 
 
 // connecting points when a region is shaded will remove the shade
-const handleConnectTwoPointsClick = (): GraphPaperAction | null => {
+function handleConnectTwoPointsClick(): GraphPaperAction | null {
   const [selectedPoint1, selectedPoint2] = selectedPoints;
-  let res:FunctionParams|null;
-  // only draw the connection if it wasn't drawn before
-  const newAction:GraphPaperAction= {
+  if (!selectedPoint1 || !selectedPoint2) return null; 
+
+  const newAction: GraphPaperAction = {
     actionType: "connect_2_points",
-    points: [selectedPoint1, selectedPoint2 ],
+    points: [selectedPoint1, selectedPoint2],
     style: { lineStyle: selectedLineStyle },
     connectionType: selectedConnectPointsType,
     functionType: selectedTwoPointFunction,
     timestamp: new Date().toISOString(),
   };
 
-  const existingConnectionIndex = actions.findIndex(action => 
-    action.actionType === "connect_2_points" &&
-    Array.isArray(action.points) &&
-    action.points.length === 2 &&
-    action.points.some(p => p.id === selectedPoint1.id) &&
-    action.points.some(p => p.id === selectedPoint2.id)
+  // Find existing connection
+  const existingConnectionIndex = actions.findIndex(a =>
+    a.actionType === "connect_2_points" &&
+    Array.isArray(a.points) && 
+    a.points.length === 2 &&
+    a.points.some(p => p.id === selectedPoint1.id) &&
+    a.points.some(p => p.id === selectedPoint2.id)
   );
+
   const canvas = canvasRef.current;
   if (!canvas) return null;
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext("2d");
   if (!ctx) return null;
 
-  
-  
   if (existingConnectionIndex !== -1) {
     const existingConnection = actions[existingConnectionIndex];
-  
-    // If the styles are different we are going to need to update everything
-    // Do we need the old action to send to inks?
-    // right now it will remove the existing one
-    // and the canvas is redrawn with every connection besides the one removed
-    const stylesChanged = (
-      existingConnection.style?.lineStyle !== selectedLineStyle || 
-      existingConnection.connectionType !== selectedConnectPointsType ||
-      existingConnection.functionType !== selectedTwoPointFunction
-
+    const sameStyle = (
+      existingConnection.style?.lineStyle === selectedLineStyle &&
+      existingConnection.connectionType === selectedConnectPointsType &&
+      existingConnection.functionType === selectedTwoPointFunction
     );
-  
-    // if its the same line, same style don't add an action to the list
-    if (!stylesChanged) {
+
+    if (sameStyle) {
       alert("This connection already exists with the same style!");
       return null;
-    }
-    else{ 
+    } else {
       alert("The styles have changed");
-      removeAction(existingConnection); 
-      clearConnection(existingConnection)
-      res = drawTwoPointConnection(ctx, selectedPoint1, selectedPoint2, selectedConnectPointsType, selectedLineStyle, selectedTwoPointFunction);
-      if (res?.valid){
-        setLastGraphedFunc(res);
-        newAction.success = true;
-      }
-      else{
-        setErrorMessage(res?.message || "Invalid connection");
-        setShowError(true);
-        newAction.success = false;
-      }
-      return newAction as GraphPaperAction;
+      removeAction(existingConnection);
+      redrawAll(ctx, actions, points, selectedPoints);
     }
+  }
 
+  // Now draw the new connection
+  const drawResult = drawTwoPointConnection(
+    ctx, 
+    selectedPoint1, 
+    selectedPoint2, 
+    selectedConnectPointsType, 
+    selectedLineStyle, 
+    selectedTwoPointFunction
+  );
+
+  if (drawResult?.valid) {
+    newAction.success = true;
+    setLastGraphedFunc(drawResult); 
+  } else {
+    newAction.success = false;
+    setErrorMessage(drawResult?.message || "Invalid connection");
+    setShowError(true);
   }
-  else{
-    // redrawAll(ctx, actions, points, selectedPoints);
-    
-    res = drawTwoPointConnection(ctx, selectedPoint1, selectedPoint2, selectedConnectPointsType, selectedLineStyle, selectedTwoPointFunction);
-    if (res?.valid){
-      setLastGraphedFunc(res);
-      newAction.success = true;
-    }
-    else{
-      setErrorMessage(res?.message || "Invalid connection");
-      setShowError(true);
-      newAction.success = false;
-    }
-    
-  }
-return newAction as GraphPaperAction;
+
+  return newAction;
 }
-
 const handleConnectThreePointsClick = (): GraphPaperAction | null => {
   if (selectedPoints.length === 3) {
     const [point1, point2, point3] = selectedPoints;
@@ -222,6 +206,7 @@ const handleConnectThreePointsClick = (): GraphPaperAction | null => {
         removeAction(existingConnection);
         clearConnection(existingConnection);
         res = drawThreePointConnection(ctx, point1, point2, point3, selectedConnectPointsType, selectedLineStyle, selectedThreePointFunction, selectedColor);
+        
         if (res?.valid){
           setLastGraphedFunc(res);
           newAction.success = true;
@@ -261,6 +246,7 @@ const handleConnectFourPointsClick = (): GraphPaperAction | null => {
       actionType: "connect_4_points",
       points: [point1, point2, point3, point4],
       style: { lineStyle: selectedLineStyle },
+      connectionType: selectedConnectPointsType,
       functionType: selectedFourPointFunction, // Assuming you have this state
       timestamp: new Date().toISOString(),
     };
@@ -369,9 +355,6 @@ const onlyCareAboutSingleConnect = (): GraphPaperAction | null => {
   });
 
   if (existingShadeAction) {
-
-    console.log(existingShadeAction)
-    console.log(selectedShadeType)
     if (existingShadeAction.ShadeType === selectedShadeType) {
     // gotta Unshade it
     alert("This region is already shaded.");
@@ -408,10 +391,6 @@ const onlyCareAboutSingleConnect = (): GraphPaperAction | null => {
 const handleShadeRegionClick = (): GraphPaperAction | null => {
   return onlyCareAboutSingleConnect()
 }
-
-
-
-
 
   const handleCanvasClick = (x: number, y: number) => {
     if (!selectedAction) return;
@@ -513,7 +492,8 @@ const handleShadeRegionClick = (): GraphPaperAction | null => {
     if (!ctx) return;
   
     ctx.clearRect(0, 0, canvas.width, canvas.height); 
-    redrawAllConnections(connectionToUpdate); 
+    redrawAllExcept(ctx, actions, points, selectedPoints, connectionToUpdate);
+    //redrawAllConnections(connectionToUpdate); 
     //redrawAll(ctx, actions, points, selectedPoints);
   };
 

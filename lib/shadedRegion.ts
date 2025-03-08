@@ -1,5 +1,6 @@
 import { computeThreePointAbsParams, drawShadedThreePointAbs } from "./absCanvas";
 import { CANVAS_SIZE, RANGE, STEP_SIZE } from "./constants";
+import { computeFourPointCubicParams, drawCubicCurve, drawShadedCubic } from "./cubicCanvas";
 import { computeQuadratic3Points, drawShadedQuadraticRegion } from "./quadraticCanvas";
 import { computeThreePointSqrtParams, drawShadedSqrtCurve } from "./sqrtCanvas";
 import { drawShadedLinearRegion } from "./twoPointCanvas";
@@ -17,11 +18,13 @@ export const drawShadedRegion = (ctx: CanvasRenderingContext2D, action: GraphPap
       }
     const { points } = action;
     const [point1, point2] = points;
-    let point3;
-    if (points.length === 3) {
+    let point3, point4;
+    if (points.length >= 3) {
       point3 = points[2];
     }
-      
+    if (points.length >= 4) {
+      point4 = points[3];
+    }
    
     //const p1Canvas = gridToCanvas(CANVAS_SIZE, STEP_SIZE, point1.x, point1.y);
     //const p2Canvas = gridToCanvas(CANVAS_SIZE, STEP_SIZE, point2.x, point2.y);
@@ -74,6 +77,10 @@ export const drawShadedRegion = (ctx: CanvasRenderingContext2D, action: GraphPap
       xMin = Math.min(xMin, point3.x);
       xMax = Math.max(xMax, point3.x);
     }
+    if (point4){
+      xMin = Math.min(xMin, point4.x);
+      xMax = Math.max(xMax, point4.x);
+    }
 
     switch (connectionType) {
       case 'continuous':
@@ -81,14 +88,7 @@ export const drawShadedRegion = (ctx: CanvasRenderingContext2D, action: GraphPap
         xMax = RANGE;
         break;
       case 'semi_infinite':
-        // If p1 < p2 in x, we shade from xMin to RANGE. If p1 > p2, we shade from -RANGE to xMax.
-        if (point1.x < point2.x) {
-          xMin = point1.x;
-          xMax = RANGE;
-        } else {
-          xMin = -RANGE;
-          xMax = point1.x;
-        }
+        xMax = RANGE;
         break;
       case 'finite':
         
@@ -151,7 +151,20 @@ export const drawShadedRegion = (ctx: CanvasRenderingContext2D, action: GraphPap
        
         break;
       case 'cubic':
-        alert('Cubic shading not implemented yet.');
+        if (point3 && point4) {
+
+          xMax = Math.max(point1.x, point2.x, point3.x, point4.x);
+          params = computeFourPointCubicParams(point1.x, point1.y, point2.x, point2.y, point3.x, point3.y, point4.x, point4.y);
+          const { A, B, C, D } = params;
+          if (!params.valid || A === undefined || B === undefined || C === undefined || D === undefined) {
+            console.warn("Cubic solve failed:", params.message);
+            return params;
+          }
+          drawShadedCubic(ctx, A, B, C, D, xMin, xMax, point1.color || 'red', shadeType);
+
+        }
+        
+       
         break;
       }
 

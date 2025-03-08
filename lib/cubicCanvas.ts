@@ -1,6 +1,6 @@
-import { CANVAS_SIZE, STEP_SIZE } from "./constants";
-import { FunctionParams } from "./types/graphPaper";
-import { gridToCanvas } from "./utils";
+import { CANVAS_SIZE, RANGE, STEP_SIZE } from "./constants";
+import { FunctionParams, ShadeType } from "./types/graphPaper";
+import { gridToCanvas, hexToRgba } from "./utils";
 
 export function computeFourPointCubicParams(
     x1: number, y1: number,
@@ -103,3 +103,73 @@ export function drawCubicCurve(
     ctx.lineWidth = 2;
     ctx.stroke();
 }
+export function drawShadedCubic(
+    ctx: CanvasRenderingContext2D,
+    a: number,
+    b: number,
+    c: number,
+    d: number,
+    xStart: number,
+    xEnd: number,
+    color: string,
+    shadeType: ShadeType
+  ) {
+    const steps = 300;
+    const dx = (xEnd - xStart) / steps;
+  
+    ctx.beginPath();
+  
+    let currentX = xStart;
+    let currentY = a * currentX**3 + b * currentX**2 + c * currentX + d;
+    let coords = gridToCanvas(CANVAS_SIZE, STEP_SIZE, currentX, currentY);
+    ctx.moveTo(coords.x, coords.y);
+  
+    for (let i = 1; i <= steps; i++) {
+      currentX = xStart + i * dx;
+      currentY = a * currentX**3 + b * currentX**2 + c * currentX + d;
+  
+      coords = gridToCanvas(CANVAS_SIZE, STEP_SIZE, currentX, currentY);
+      ctx.lineTo(coords.x, coords.y);
+    }
+  
+    if (shadeType === "above") {
+
+      const topRight = gridToCanvas(CANVAS_SIZE, STEP_SIZE, xEnd, RANGE);
+      ctx.lineTo(topRight.x, topRight.y);
+  
+      const topLeft = gridToCanvas(CANVAS_SIZE, STEP_SIZE, xStart, RANGE);
+      ctx.lineTo(topLeft.x, topLeft.y);
+  
+    } else {
+      const bottomRight = gridToCanvas(CANVAS_SIZE, STEP_SIZE, xEnd, -RANGE);
+      ctx.lineTo(bottomRight.x, bottomRight.y);
+  
+      const bottomLeft = gridToCanvas(CANVAS_SIZE, STEP_SIZE, xStart, -RANGE);
+      ctx.lineTo(bottomLeft.x, bottomLeft.y);
+
+    }
+  
+    ctx.closePath();
+  
+    ctx.save();
+    
+    ctx.globalCompositeOperation = "multiply"; 
+    ctx.fillStyle = hexToRgba(color, 0.35);
+    ctx.fill();
+    ctx.restore();
+  
+    ctx.beginPath();
+    currentX = xStart;
+    currentY = a * currentX**3 + b * currentX**2 + c * currentX + d;
+    let firstCoords = gridToCanvas(CANVAS_SIZE, STEP_SIZE, currentX, currentY);
+    ctx.moveTo(firstCoords.x, firstCoords.y);
+    for (let i = 1; i <= steps; i++) {
+      currentX = xStart + i * dx;
+      currentY = a * currentX**3 + b * currentX**2 + c * currentX + d;
+      coords = gridToCanvas(CANVAS_SIZE, STEP_SIZE, currentX, currentY);
+      ctx.lineTo(coords.x, coords.y);
+    }
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
