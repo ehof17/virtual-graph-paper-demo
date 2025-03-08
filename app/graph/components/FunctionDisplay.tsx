@@ -15,7 +15,7 @@ const FunctionDisplay: React.FC<FunctionDisplay> = ({ params }) => {
   
     switch (params.type) {
         case "quadratic":
-            func = `f(x) = ${params.A}x^2 + ${params.B}x + ${params.C}`;
+            func = `f(x) = ${round(params.A)}x^2 + ${round(params.B)}x + ${round(params.C)}`;
             break;
         case "absolute_value":
             func = `f(x) = ${params.A}|x + ${params.H}| + ${params.K}`;
