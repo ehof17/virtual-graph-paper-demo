@@ -33,6 +33,7 @@ interface GraphPaperContextProps {
   addPoint: (point: GraphPaperPoint) => void;
   removeAction: (action: GraphPaperAction) => void;
   clearActions: () => void;
+  deleteSelectedPoints: () => void;
 }
 
 const GraphPaperContext = createContext<GraphPaperContextProps | undefined>(undefined);
@@ -81,6 +82,21 @@ export const GraphPaperProvider: React.FC<GraphPaperProviderProps> = ({ children
     setActions(prev => prev.filter(a => a.timestamp !== action.timestamp));
   };
 
+
+  const deleteSelectedPoints = () => {
+    setPoints(prevPoints => {
+      const updatedPoints = prevPoints.filter(
+        point => !selectedPoints.some(selected => selected.id === point.id)
+      );
+  
+      // Trigger rerender
+      return updatedPoints;
+    });
+  
+    setSelectedPoints([]); // Clear selected points after deletion
+  };
+  
+
   // undo last action
   const popAction = () => {
     setActions(prev => prev.slice(0, -1));
@@ -100,6 +116,7 @@ export const GraphPaperProvider: React.FC<GraphPaperProviderProps> = ({ children
     removeSelectedPoint,
     removeAction,
     clearActions,
+    deleteSelectedPoints,
     selectedPointStyle,
     setSelectedPointStyle,
     selectedConnectPointsType,

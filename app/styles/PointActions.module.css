@@ -1,0 +1,18 @@
+.pointActionsContainer {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Delete Button */
+.deleteButton {
+    background-color: transparent;
+    font-size: 0.85rem;
+    cursor: pointer;
+    height: 1.5rem;
+    padding: 4px 6px;
+}
+
+.deleteButton:hover {
+    color: #ff4d4d;
+}
