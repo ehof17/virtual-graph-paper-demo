@@ -45,19 +45,15 @@ const GraphPaper: React.FC = () => {
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
   
-      // Clear the entire canvas
       ctx.clearRect(0, 0, canvas.width, canvas.height);
   
-      // Redraw the grid
       drawGrid(canvas);
   
-      // Redraw all remaining points
       points.forEach(point => drawPoint(ctx, point));
   
-      // Redraw selected points with highlight
       selectedPoints.forEach(point => drawSelectedPoint(ctx, point));
     }
-  }, [points]); // Runs every time points change
+  }, [points]); 
   
 
 const handleSelectPointsCanvasClick = (x: number, y: number) => {
