@@ -16,6 +16,8 @@ import { drawTwoPointConnection } from '@/lib/twoPointCanvas';
 import { drawShadedRegion } from '@/lib/shadedRegion';
 import ErrorModal from './ErrorModal';
 import FunctionDisplay from './FunctionDisplay';
+import PointActions from './PointActions';
+
 
 
 const GraphPaper: React.FC = () => {
@@ -39,9 +41,20 @@ const GraphPaper: React.FC = () => {
 
   useEffect(() => {
     if (canvasRef.current) {
-      drawGrid(canvasRef.current);
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+  
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
+      drawGrid(canvas);
+  
+      points.forEach(point => drawPoint(ctx, point));
+  
+      selectedPoints.forEach(point => drawSelectedPoint(ctx, point));
     }
-  }, []);
+  }, [points]); 
+  
 
 const handleSelectPointsCanvasClick = (x: number, y: number) => {
   const updated = canvasToGrid(CANVAS_SIZE, STEP_SIZE, x, y)
@@ -629,7 +642,13 @@ const handleShadeRegionClick = (): GraphPaperAction | null => {
           onPlotPointClick={handlePlotPointFromInput} />
        
       )}
-      {(selectedAction === "select_points" || selectedAction == "plot_point") && <ColorSelector />}
+      {(selectedAction === "select_points" || selectedAction == "plot_point") && (
+  <>
+    <ColorSelector />
+    <PointActions />
+  </>
+)}
+
       
       <ErrorModal
       show={showError}

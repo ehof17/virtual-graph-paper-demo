@@ -8,7 +8,8 @@ import { COLOR_OPTIONS } from '@/lib/constants';
 
 
 const ColorSelector: React.FC = () => {
-  const { selectedColor, setSelectedColor } = useGraphPaper();
+  const { selectedColor, setSelectedColor, selectedPoints } = useGraphPaper();
+
   const handleColorChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedColor(event.target.value);
   };
@@ -28,13 +29,14 @@ const ColorSelector: React.FC = () => {
           </option>
         ))}
       </select>
-
       <div
         className={styles.selectedColorPreview}
         style={{ backgroundColor: selectedColor }}
       >
-      </div>
+      
     </div>
+    </div>
+
   );
 };
 
