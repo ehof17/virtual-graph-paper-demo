@@ -1,5 +1,5 @@
 import { CANVAS_SIZE, RANGE, STEP_SIZE } from "./constants";
-import { FunctionParams, GraphPaperAction, GraphPaperPoint, ShadeType } from "./types/graphPaper";
+import { FunctionParams, ShadeType } from "./types/graphPaper";
 import { gridToCanvas } from "./utils";
 
 
@@ -100,7 +100,7 @@ export function drawQuadraticCurve(
     // Start
     let currentX = xMin;
     let currentY = A * currentX * currentX + B * currentX + C;
-    let start = gridToCanvas(CANVAS_SIZE, STEP_SIZE, currentX, currentY);
+    const start = gridToCanvas(CANVAS_SIZE, STEP_SIZE, currentX, currentY);
     ctx.moveTo(start.x, start.y);
   
     // Plot the curve
@@ -120,8 +120,8 @@ export function drawQuadraticCurve(
       // Connect from the last curve point to top boundary,
       // then over to top boundary at xMin,
       // and back down to the start curve point
-      const lastCurveX = xMax;
-      const lastCurveY = A* xMax * xMax + B * xMax + C;
+      //const lastCurveX = xMax;
+     // const lastCurveY = A* xMax * xMax + B * xMax + C;
       //const lastPt = gridToCanvas(CANVAS_SIZE, STEP_SIZE, lastCurveX, lastCurveY);
   
       // We'll draw a line to (xMax, +RANGE)

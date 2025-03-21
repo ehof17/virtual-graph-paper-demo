@@ -161,7 +161,7 @@ export function drawShadedCubic(
     ctx.beginPath();
     currentX = xStart;
     currentY = a * currentX**3 + b * currentX**2 + c * currentX + d;
-    let firstCoords = gridToCanvas(CANVAS_SIZE, STEP_SIZE, currentX, currentY);
+    const firstCoords = gridToCanvas(CANVAS_SIZE, STEP_SIZE, currentX, currentY);
     ctx.moveTo(firstCoords.x, firstCoords.y);
     for (let i = 1; i <= steps; i++) {
       currentX = xStart + i * dx;

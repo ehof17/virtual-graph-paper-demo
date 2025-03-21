@@ -1,11 +1,11 @@
 import { computeThreePointAbsParams, drawShadedThreePointAbs } from "./absCanvas";
-import { CANVAS_SIZE, RANGE, STEP_SIZE } from "./constants";
-import { computeFourPointCubicParams, drawCubicCurve, drawShadedCubic } from "./cubicCanvas";
+import { RANGE } from "./constants";
+import { computeFourPointCubicParams,  drawShadedCubic } from "./cubicCanvas";
 import { computeQuadratic3Points, drawShadedQuadraticRegion } from "./quadraticCanvas";
 import { computeThreePointSqrtParams, drawShadedSqrtCurve } from "./sqrtCanvas";
 import { drawShadedLinearRegion } from "./twoPointCanvas";
 import { GraphPaperAction, ShadeType } from "./types/graphPaper";
-import { gridToCanvas, hexToRgba } from "./utils";
+import { hexToRgba } from "./utils";
 
 export const drawShadedRegion = (ctx: CanvasRenderingContext2D, action: GraphPaperAction, shadeType: ShadeType) => {
     if (!ctx) return;

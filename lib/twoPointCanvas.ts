@@ -1,5 +1,5 @@
 import { CANVAS_SIZE, RANGE, STEP_SIZE } from "./constants";
-import { ConnectPointsType, FunctionParams, GraphPaperAction, GraphPaperPoint, LineStyle, ShadeType, TwoPointFunctionType } from "./types/graphPaper";
+import { ConnectPointsType, FunctionParams,  GraphPaperPoint, LineStyle, ShadeType, TwoPointFunctionType } from "./types/graphPaper";
 import { gridToCanvas } from "./utils";
 
 export const drawTwoPointConnection = (ctx: CanvasRenderingContext2D, point1: GraphPaperPoint, point2: GraphPaperPoint, connectionType: ConnectPointsType, lineStyle: LineStyle, selectedTwoPointFunction: TwoPointFunctionType): FunctionParams |null => {

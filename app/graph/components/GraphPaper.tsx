@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useRef, useEffect} from 'react';
-import { GraphPaperAction, ActionType, FunctionParams, TwoPointFunctionType, ThreePointFunctionType} from '../../../lib/types/graphPaper';
+import { GraphPaperAction, ActionType, FunctionParams} from '../../../lib/types/graphPaper';
 import styles from '../../styles/GraphPaper.module.css';
 import { useGraphPaper } from '../../../contexts/GraphPaperContext';
 import ActionToolbar from './ActionToolbar';
@@ -501,117 +501,117 @@ const handleShadeRegionClick = (): GraphPaperAction | null => {
 // redraws all points 
 // and connections based on the list of actions
 // the connectionToUpdate will be drawn using the selected styles
-  const redrawAllConnections = (connectionToUpdate: GraphPaperAction) =>{
+  // const redrawAllConnections = (connectionToUpdate: GraphPaperAction) =>{
 
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+  //   const canvas = canvasRef.current;
+  //   if (!canvas) return;
+  //   const ctx = canvas.getContext('2d');
+  //   if (!ctx) return;
 
-    console.log("We Drawing Grid")
-    drawGrid(canvas);
+  //   console.log("We Drawing Grid")
+  //   drawGrid(canvas);
 
-    points.forEach(point =>{
-      drawPoint(ctx, point)
-    })
+  //   points.forEach(point =>{
+  //     drawPoint(ctx, point)
+  //   })
 
-    selectedPoints.forEach(point => {
-      drawSelectedPoint(ctx, point)
-    })
+  //   selectedPoints.forEach(point => {
+  //     drawSelectedPoint(ctx, point)
+  //   })
 
 
-    actions.forEach((action) => {
-      // Draw the existing connections the same way that they were drawn originally
-      let connectionType = action.connectionType;
-      let lineStyle = action.style?.lineStyle;
-      let color = action.style?.color || 'red';
-      let func = action.functionType || 'linear';
+  //   actions.forEach((action) => {
+  //     // Draw the existing connections the same way that they were drawn originally
+  //     let connectionType = action.connectionType;
+  //     let lineStyle = action.style?.lineStyle;
+  //     let color = action.style?.color || 'red';
+  //     let func = action.functionType || 'linear';
 
-      if (action.actionType === "connect_2_points") {
-        if (action.points?.length === 2) {
-          const actionPoint = action.points[0]
-          const actionPoint2 = action.points[1]
+  //     if (action.actionType === "connect_2_points") {
+  //       if (action.points?.length === 2) {
+  //         const actionPoint = action.points[0]
+  //         const actionPoint2 = action.points[1]
 
-          // If the action is a connect points action and it matches the points attached to the passed in 
-          // action to update
-          // Draw it with the new updated style, not the existing style
-          if (
-            Array.isArray(connectionToUpdate.points) &&
-            connectionToUpdate.points.length === 2 &&
-            connectionToUpdate.points.some(p => p.id === actionPoint.id) &&
-            connectionToUpdate.points.some(p => p.id === actionPoint2.id)
-          ) {
-            connectionType = selectedConnectPointsType
-            lineStyle = selectedLineStyle
-            if (selectedTwoPointFunction){
-              func = selectedTwoPointFunction
-            }
-          }
+  //         // If the action is a connect points action and it matches the points attached to the passed in 
+  //         // action to update
+  //         // Draw it with the new updated style, not the existing style
+  //         if (
+  //           Array.isArray(connectionToUpdate.points) &&
+  //           connectionToUpdate.points.length === 2 &&
+  //           connectionToUpdate.points.some(p => p.id === actionPoint.id) &&
+  //           connectionToUpdate.points.some(p => p.id === actionPoint2.id)
+  //         ) {
+  //           connectionType = selectedConnectPointsType
+  //           lineStyle = selectedLineStyle
+  //           if (selectedTwoPointFunction){
+  //             func = selectedTwoPointFunction
+  //           }
+  //         }
 
           
-          if (connectionType && lineStyle) {
-            const canvas = canvasRef.current;
-            if (!canvas) return;
-            const ctx = canvas.getContext("2d");
-            if (!ctx) return;
+  //         if (connectionType && lineStyle) {
+  //           const canvas = canvasRef.current;
+  //           if (!canvas) return;
+  //           const ctx = canvas.getContext("2d");
+  //           if (!ctx) return;
 
-            drawTwoPointConnection(
-              ctx, 
-              action.points[0],
-              action.points[1],
-              connectionType,
-              lineStyle,
-              func as TwoPointFunctionType,
-            );
-          }
-        }
-      }
+  //           drawTwoPointConnection(
+  //             ctx, 
+  //             action.points[0],
+  //             action.points[1],
+  //             connectionType,
+  //             lineStyle,
+  //             func as TwoPointFunctionType,
+  //           );
+  //         }
+  //       }
+  //     }
 
-      if (action.actionType === "connect_3_points") {
-        if (action.points?.length === 3) {
-          const [actionPoint, actionPoint2, actionPoint3] = action.points
+  //     if (action.actionType === "connect_3_points") {
+  //       if (action.points?.length === 3) {
+  //         const [actionPoint, actionPoint2, actionPoint3] = action.points
 
 
-          // If the action is a connect points action and it matches the points attached to the passed in 
-          // action to update
-          // Draw it with the new updated style, not the existing style
-          if (
-            Array.isArray(connectionToUpdate.points) &&
-            connectionToUpdate.points.length === 2 &&
-            connectionToUpdate.points.some(p => p.id === actionPoint.id) &&
-            connectionToUpdate.points.some(p => p.id === actionPoint2.id) &&
-            connectionToUpdate.points.some(p => p.id === actionPoint3.id)
-          ) {
-            connectionType = selectedConnectPointsType
-            lineStyle = selectedLineStyle
-            color = selectedColor
-            func = selectedThreePointFunction
+  //         // If the action is a connect points action and it matches the points attached to the passed in 
+  //         // action to update
+  //         // Draw it with the new updated style, not the existing style
+  //         if (
+  //           Array.isArray(connectionToUpdate.points) &&
+  //           connectionToUpdate.points.length === 2 &&
+  //           connectionToUpdate.points.some(p => p.id === actionPoint.id) &&
+  //           connectionToUpdate.points.some(p => p.id === actionPoint2.id) &&
+  //           connectionToUpdate.points.some(p => p.id === actionPoint3.id)
+  //         ) {
+  //           connectionType = selectedConnectPointsType
+  //           lineStyle = selectedLineStyle
+  //           color = selectedColor
+  //           func = selectedThreePointFunction
 
-          }
+  //         }
 
     
-          if (connectionType && lineStyle) {
-            const canvas = canvasRef.current;
-            if (!canvas) return;
-            const ctx = canvas.getContext("2d");
-            if (!ctx) return;
+  //         if (connectionType && lineStyle) {
+  //           const canvas = canvasRef.current;
+  //           if (!canvas) return;
+  //           const ctx = canvas.getContext("2d");
+  //           if (!ctx) return;
 
-            drawThreePointConnection(
-              ctx, 
-              action.points[0],
-              action.points[1],
-              action.points[2],
-              connectionType,
-              lineStyle,
-              func as ThreePointFunctionType,
-              color
-            );
-          }
-        }
-      }
+  //           drawThreePointConnection(
+  //             ctx, 
+  //             action.points[0],
+  //             action.points[1],
+  //             action.points[2],
+  //             connectionType,
+  //             lineStyle,
+  //             func as ThreePointFunctionType,
+  //             color
+  //           );
+  //         }
+  //       }
+  //     }
 
-    });
-  }
+  //   });
+  // }
   
   return (
     <div className={styles.graphPaperContainer}>
