@@ -8,7 +8,7 @@ import { COLOR_OPTIONS } from '@/lib/constants';
 
 
 const ColorSelector: React.FC = () => {
-  const { selectedColor, setSelectedColor, selectedPoints } = useGraphPaper();
+  const { selectedColor, setSelectedColor } = useGraphPaper();
 
   const handleColorChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedColor(event.target.value);
